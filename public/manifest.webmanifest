@@ -1,7 +1,7 @@
 {
  "name": "Pico Multitool",
  "short_name": "Pico Multitool",
- "description": "47 ferramentas grátis que rodam no seu navegador: remover fundo de imagem, comprimir imagem e vídeo, cortar vídeo e áudio, juntar e dividir PDF, QR Code e mais. Sem upload, funciona no celular.",
+ "description": "50 ferramentas grátis que rodam no seu navegador: remover fundo de imagem, comprimir imagem e vídeo, cortar vídeo e áudio, juntar e dividir PDF, QR Code e mais. Sem upload, funciona no celular.",
  "lang": "pt-BR",
  "start_url": "/",
  "scope": "/",
@@ -27,16 +27,16 @@
    "url": "/remover-fundo/"
   },
   {
+   "name": "Recortar imagem para redes sociais",
+   "url": "/recortar-imagem/"
+  },
+  {
+   "name": "Extrair texto de imagem (OCR)",
+   "url": "/extrair-texto-imagem/"
+  },
+  {
    "name": "Converter imagem",
    "url": "/converter-imagem/"
-  },
-  {
-   "name": "Comprimir imagem",
-   "url": "/comprimir-imagem/"
-  },
-  {
-   "name": "Redimensionar imagem",
-   "url": "/redimensionar-imagem/"
   }
  ]
 }

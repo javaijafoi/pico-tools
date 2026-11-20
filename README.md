@@ -1,6 +1,6 @@
 # 🧰 Pico Multitool
 
-> 47 ferramentas grátis que rodam **inteiras no navegador**, no celular ou no PC. Estilo PICO-8. Sem upload, sem servidor, sem cadastro.
+> 50 ferramentas grátis que rodam **inteiras no navegador**, no celular ou no PC. Estilo PICO-8. Sem upload, sem servidor, sem cadastro.
 
 **Site:** https://pico-tools-javaijafoi.vercel.app
 
@@ -34,6 +34,8 @@ Sites de ferramentas (juntar PDF, gerar CPF, QR Code…) costumam mandar seus ar
 
 ### IMAGEM
 
+- **[Recortar imagem para redes sociais](https://pico-tools-javaijafoi.vercel.app/recortar-imagem/)**: Recorta em 1:1, 4:5, 9:16, 16:9 e outras proporções prontas.
+- **[Extrair texto de imagem (OCR)](https://pico-tools-javaijafoi.vercel.app/extrair-texto-imagem/)**: Lê o texto de prints e fotos de documentos e copia para você.
 - **[Remover fundo da imagem](https://pico-tools-javaijafoi.vercel.app/remover-fundo/)**: Tira o fundo de fotos com IA, direto no seu aparelho.
 - **[Converter imagem](https://pico-tools-javaijafoi.vercel.app/converter-imagem/)**: PNG, JPG e WebP: converta entre formatos.
 - **[Comprimir imagem](https://pico-tools-javaijafoi.vercel.app/comprimir-imagem/)**: Reduz o peso da foto escolhendo a qualidade.
@@ -50,6 +52,7 @@ Sites de ferramentas (juntar PDF, gerar CPF, QR Code…) costumam mandar seus ar
 
 ### PDF
 
+- **[PDF escaneado para texto (OCR)](https://pico-tools-javaijafoi.vercel.app/pdf-para-texto/)**: Tira o texto de PDFs escaneados e baixa em .txt.
 - **[Juntar PDF](https://pico-tools-javaijafoi.vercel.app/juntar-pdf/)**: Une vários PDFs em um só, na ordem que você quiser.
 - **[Dividir PDF](https://pico-tools-javaijafoi.vercel.app/dividir-pdf/)**: Divide por intervalo, por páginas ou em partes iguais.
 - **[Girar PDF](https://pico-tools-javaijafoi.vercel.app/girar-pdf/)**: Gira todas as páginas ou só as que escolher.
@@ -84,6 +87,7 @@ Sites de ferramentas (juntar PDF, gerar CPF, QR Code…) costumam mandar seus ar
 - PDF: [pdf-lib](https://pdf-lib.js.org/) (juntar, dividir, girar, numerar) e [pdf.js](https://mozilla.github.io/pdf.js/) (renderizar, comprimir, PDF para imagem). Ambas MIT/Apache, sem AGPL.
 - Vídeo e áudio: [ffmpeg.wasm](https://ffmpegwasm.netlify.app/) (MIT; o núcleo de ~30 MB baixa de um CDN público na primeira vez e fica em cache). Remover fundo: [@imgly/background-removal](https://github.com/imgly/background-removal-js) (licença AGPL-3.0, carregado de um CDN em tempo de execução; o modelo de ~40 MB roda no aparelho). Nenhum arquivo do usuário é enviado.
 - "Peça sua tool": o formulário chama uma função do Supabase que só insere (texto de 5 a 500 caracteres, campo-isca, limite por hora e por dia, pedidos repetidos ignorados). Ninguém consegue ler os pedidos pelo site.
+- OCR: [Tesseract.js](https://github.com/naptha/tesseract.js) (Apache-2.0); o motor e o idioma (~6 MB) baixam de um CDN público na primeira vez e ficam em cache.
 - QR Code: [qrcode-generator](https://github.com/kazuhikoarase/qrcode-generator). ZIP: [JSZip](https://stuk.github.io/jszip/).
 - Aleatoriedade com `crypto.getRandomValues`. Hashes com `crypto.subtle`.
 - Limitações honestas: PDFs com proteção de edição não abrem nas ferramentas que usam pdf-lib (use "Comprimir PDF", que passa por pdf.js); "Comprimir PDF" no modo máximo transforma páginas em imagem.
