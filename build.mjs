@@ -5,7 +5,7 @@ import { TOOLS, CATS, SITE } from './public/js/registry.js';
 process.chdir('public');
 
 const esc = s => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
-const PERSON = { '@type': 'Person', '@id': 'https://javaijafoi.vercel.app/#peter', name: 'Peter Mac', alternateName: 'javaijafoi', url: 'https://javaijafoi.vercel.app', sameAs: ['https://github.com/javaijafoi'] };
+const PERSON = { '@type': 'Person', '@id': 'https://javaijafoi.dev/#peter', name: 'Peter Mac', alternateName: 'javaijafoi', url: 'https://javaijafoi.dev', sameAs: ['https://github.com/javaijafoi'] };
 const BUILD = createHash('sha1').update(readFileSync('js/registry.js')).update(String(Date.now())).digest('hex').slice(0, 8);
 const ld = o => `<script type="application/ld+json">${JSON.stringify(o)}</script>`;
 
@@ -31,7 +31,7 @@ ${extra}
 
 const footer = `<footer>
 <p>PICO MULTITOOL · tudo roda no seu aparelho, nada é enviado</p>
-<p>feito por <a href="https://javaijafoi.vercel.app">Peter Mac (javaijafoi)</a> · <a href="https://github.com/javaijafoi/pico-tools">código no GitHub</a> · MIT</p>
+<p>feito por <a href="https://javaijafoi.dev">Peter Mac (javaijafoi)</a> · <a href="https://github.com/javaijafoi/pico-tools">código no GitHub</a> · MIT</p>
 </footer>`;
 
 const card = t => `<li class="card-li" data-cat="${t.cat}" data-s="${esc(t.name + ' ' + t.desc + ' ' + t.kw)}"><a class="card" href="/${t.slug}/" style="--c:${CATS[t.cat].color}"><span class="tag">${CATS[t.cat].name}</span><span class="ic" aria-hidden="true">${t.icon}</span><span class="nm">${esc(t.name)}</span><span class="ds">${esc(t.desc)}</span></a></li>`;
@@ -97,7 +97,7 @@ ${footer}
 const today = new Date().toISOString().slice(0, 10);
 out('sitemap.xml', `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${[['/', '1.0'], ...TOOLS.map(t => [`/${t.slug}/`, '0.8'])].map(([p, pr]) => `<url><loc>${SITE}${p}</loc><lastmod>${today}</lastmod><priority>${pr}</priority></url>`).join('\n')}\n</urlset>\n`);
 out('robots.txt', `User-agent: *\nAllow: /\n\nSitemap: ${SITE}/sitemap.xml\n`);
-out('llms.txt', `# Pico Multitool\n\n> ${TOOLS.length} ferramentas gratuitas em português que rodam inteiras no navegador (PDF, imagem, texto, geradores, calculadoras e utilidades de desenvolvedor). Nada é enviado a servidores. Feito por Peter Mac (javaijafoi), em estilo PICO-8. Código aberto (MIT): https://github.com/javaijafoi/pico-tools\n\n${Object.entries(CATS).map(([k, c]) => `## ${c.name}\n${TOOLS.filter(t => t.cat === k).map(t => `- [${t.name}](${SITE}/${t.slug}/): ${t.desc}`).join('\n')}`).join('\n\n')}\n\n## Autor\n- [Portfólio de Peter Mac](https://javaijafoi.vercel.app)\n- [GitHub](https://github.com/javaijafoi)\n`);
+out('llms.txt', `# Pico Multitool\n\n> ${TOOLS.length} ferramentas gratuitas em português que rodam inteiras no navegador (PDF, imagem, texto, geradores, calculadoras e utilidades de desenvolvedor). Nada é enviado a servidores. Feito por Peter Mac (javaijafoi), em estilo PICO-8. Código aberto (MIT): https://github.com/javaijafoi/pico-tools\n\n${Object.entries(CATS).map(([k, c]) => `## ${c.name}\n${TOOLS.filter(t => t.cat === k).map(t => `- [${t.name}](${SITE}/${t.slug}/): ${t.desc}`).join('\n')}`).join('\n\n')}\n\n## Autor\n- [Portfólio de Peter Mac](https://javaijafoi.dev)\n- [GitHub](https://github.com/javaijafoi)\n`);
 
 out('manifest.webmanifest', JSON.stringify({ name: 'Pico Multitool', short_name: 'Pico Multitool', description: homeDesc, lang: 'pt-BR', start_url: '/', scope: '/', display: 'standalone', background_color: '#1d2b53', theme_color: '#1d2b53', icons: [{ src: '/icon-192.png', sizes: '192x192', type: 'image/png' }, { src: '/icon-512.png', sizes: '512x512', type: 'image/png', purpose: 'any maskable' }], shortcuts: TOOLS.slice(0, 4).map(t => ({ name: t.name, url: `/${t.slug}/` })) }, null, 1));
 

@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://pico-tools-javaijafoi.vercel.app/sitemap.xml
+Sitemap: https://multitool.javaijafoi.dev/sitemap.xml

@@ -1,5 +1,5 @@
 // Catálogo das ferramentas. Sem dependência de DOM (o build.mjs também lê este arquivo).
-export const SITE = 'https://pico-tools-javaijafoi.vercel.app';
+export const SITE = 'https://multitool.javaijafoi.dev';
 export const CATS = {
   img: { name: 'IMAGEM', color: '#ff77a8' },
   vid: { name: 'VÍDEO', color: '#83769c' },
