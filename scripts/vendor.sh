@@ -11,3 +11,4 @@ cp $F/press-start-2p/files/press-start-2p-latin-400-normal.woff2 public/fonts/ps
 cp $F/press-start-2p/files/press-start-2p-latin-ext-400-normal.woff2 public/fonts/ps2p-ext.woff2
 cp $F/vt323/files/vt323-latin-400-normal.woff2 public/fonts/vt323.woff2
 cp $F/vt323/files/vt323-latin-ext-400-normal.woff2 public/fonts/vt323-ext.woff2
+cp node_modules/@ffmpeg/ffmpeg/dist/umd/ffmpeg.js node_modules/@ffmpeg/ffmpeg/dist/umd/814.ffmpeg.js $V/

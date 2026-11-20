@@ -1,6 +1,6 @@
 # 🧰 Pico Multitool
 
-> 41 ferramentas grátis que rodam **inteiras no navegador**, no celular ou no PC. Estilo PICO-8. Sem upload, sem servidor, sem cadastro.
+> 47 ferramentas grátis que rodam **inteiras no navegador**, no celular ou no PC. Estilo PICO-8. Sem upload, sem servidor, sem cadastro.
 
 **Site:** https://pico-tools-javaijafoi.vercel.app
 
@@ -34,10 +34,19 @@ Sites de ferramentas (juntar PDF, gerar CPF, QR Code…) costumam mandar seus ar
 
 ### IMAGEM
 
+- **[Remover fundo da imagem](https://pico-tools-javaijafoi.vercel.app/remover-fundo/)**: Tira o fundo de fotos com IA, direto no seu aparelho.
 - **[Converter imagem](https://pico-tools-javaijafoi.vercel.app/converter-imagem/)**: PNG, JPG e WebP: converta entre formatos.
 - **[Comprimir imagem](https://pico-tools-javaijafoi.vercel.app/comprimir-imagem/)**: Reduz o peso da foto escolhendo a qualidade.
 - **[Redimensionar imagem](https://pico-tools-javaijafoi.vercel.app/redimensionar-imagem/)**: Muda largura e altura em pixels ou por porcentagem.
 - **[Remover dados da foto (EXIF)](https://pico-tools-javaijafoi.vercel.app/remover-metadados-imagem/)**: Apaga localização GPS e dados da câmera antes de compartilhar.
+
+### VÍDEO E ÁUDIO
+
+- **[Comprimir vídeo](https://pico-tools-javaijafoi.vercel.app/comprimir-video/)**: Diminui o peso do vídeo sem enviar para lugar nenhum.
+- **[Cortar vídeo](https://pico-tools-javaijafoi.vercel.app/cortar-video/)**: Corta um trecho do vídeo pelo início e pelo fim.
+- **[Vídeo para GIF](https://pico-tools-javaijafoi.vercel.app/video-para-gif/)**: Transforma um trecho de vídeo em GIF animado.
+- **[Extrair áudio do vídeo](https://pico-tools-javaijafoi.vercel.app/extrair-audio/)**: Tira o áudio de um vídeo em MP3, WAV ou M4A.
+- **[Cortar áudio](https://pico-tools-javaijafoi.vercel.app/cortar-audio/)**: Corta um trecho de áudio e salva em MP3, WAV ou M4A.
 
 ### PDF
 
@@ -73,6 +82,8 @@ Sites de ferramentas (juntar PDF, gerar CPF, QR Code…) costumam mandar seus ar
 
 - Site estático (HTML + JS puro, sem framework). Cada ferramenta tem sua página, gerada por `build.mjs` a partir de `public/js/registry.js`.
 - PDF: [pdf-lib](https://pdf-lib.js.org/) (juntar, dividir, girar, numerar) e [pdf.js](https://mozilla.github.io/pdf.js/) (renderizar, comprimir, PDF para imagem). Ambas MIT/Apache, sem AGPL.
+- Vídeo e áudio: [ffmpeg.wasm](https://ffmpegwasm.netlify.app/) (MIT; o núcleo de ~30 MB baixa de um CDN público na primeira vez e fica em cache). Remover fundo: [@imgly/background-removal](https://github.com/imgly/background-removal-js) (licença AGPL-3.0, carregado de um CDN em tempo de execução; o modelo de ~40 MB roda no aparelho). Nenhum arquivo do usuário é enviado.
+- "Peça sua tool": o formulário chama uma função do Supabase que só insere (texto de 5 a 500 caracteres, campo-isca, limite por hora e por dia, pedidos repetidos ignorados). Ninguém consegue ler os pedidos pelo site.
 - QR Code: [qrcode-generator](https://github.com/kazuhikoarase/qrcode-generator). ZIP: [JSZip](https://stuk.github.io/jszip/).
 - Aleatoriedade com `crypto.getRandomValues`. Hashes com `crypto.subtle`.
 - Limitações honestas: PDFs com proteção de edição não abrem nas ferramentas que usam pdf-lib (use "Comprimir PDF", que passa por pdf.js); "Comprimir PDF" no modo máximo transforma páginas em imagem.

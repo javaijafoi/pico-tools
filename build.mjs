@@ -40,7 +40,7 @@ const topbar = `<header class="top"><a class="logo" href="/">PICO<b>TOOLS</b></a
 const out = (path, data) => { const dir = path.split('/').slice(0, -1).join('/'); if (dir) mkdirSync(dir, { recursive: true }); writeFileSync(path, data); };
 
 // HOME
-const homeDesc = `${TOOLS.length} ferramentas grátis que rodam no seu navegador: juntar e dividir PDF, comprimir imagem, gerar CPF e CNPJ, QR Code, contador de palavras e mais. Sem upload, funciona no celular.`;
+const homeDesc = `${TOOLS.length} ferramentas grátis que rodam no seu navegador: remover fundo de imagem, comprimir imagem e vídeo, cortar vídeo e áudio, juntar e dividir PDF, QR Code e mais. Sem upload, funciona no celular.`;
 out('index.html', head({
   title: `Pico Multitool · ${TOOLS.length} ferramentas grátis que rodam no seu aparelho`, desc: homeDesc, url: SITE + '/',
   extra: ld({ '@context': 'https://schema.org', '@graph': [
@@ -51,7 +51,7 @@ out('index.html', head({
 }) + `
 <body><div class="wrap">
 ${topbar}
-<section class="hero"><h1>FERRAMENTAS ÚTEIS,<br>NO SEU APARELHO</h1><p>PDF, imagem, texto, geradores e calculadoras. Abre no celular ou no PC e nada sobe para servidor nenhum.</p>
+<section class="hero"><h1>FERRAMENTAS ÚTEIS,<br>NO SEU APARELHO</h1><p>Imagem, vídeo, áudio, PDF, texto e calculadoras. Abre no celular ou no PC e nada sobe para servidor nenhum.</p>
 <div class="badges"><span class="chip">SEM UPLOAD</span><span class="chip y">FUNCIONA OFFLINE</span><span class="chip p">GRÁTIS · SEM CADASTRO</span></div></section>
 <main>
 <label class="sr" for="q">Buscar ferramenta</label>
@@ -60,6 +60,11 @@ ${topbar}
 <ul class="grid" id="grid">${TOOLS.map(card).join('')}</ul>
 <p class="empty" id="empty" hidden>Nenhuma ferramenta encontrada. Tente "pdf", "imagem" ou "cpf".</p>
 </main>
+<section class="panel" id="pedido"><h2>PEÇA SUA TOOL</h2><p class="lead">Faltou alguma ferramenta? Conte o que você precisa. Eu leio os pedidos e vou criando as mais pedidas.</p>
+<form id="pedidoForm" autocomplete="off"><label class="f"><span>O que você quer que a ferramenta faça?</span><textarea id="pedTxt" maxlength="500" rows="3" required minlength="5" placeholder="Ex.: juntar vídeos, remover áudio de vídeo…"></textarea></label>
+<label class="f"><span>Contato (opcional, se quiser aviso quando ficar pronta)</span><input type="text" id="pedCont" maxlength="100" placeholder="e-mail ou @usuario"></label>
+<div style="position:absolute;left:-9999px" aria-hidden="true"><label>Não preencha<input type="text" id="pedIsca" tabindex="-1" autocomplete="off"></label></div>
+<div class="row"><button type="submit" class="btn g" id="pedBtn">ENVIAR PEDIDO</button></div><div class="status" id="pedSt" role="status" aria-live="polite"></div></form></section>
 <section class="seo"><h2>COMO FUNCIONA</h2><p>Cada ferramenta roda dentro do navegador, com JavaScript. Seus arquivos e textos ficam no aparelho: não existe servidor recebendo PDFs, fotos ou senhas. Depois da primeira visita, as ferramentas continuam funcionando sem internet.</p></section>
 ${footer}
 </div><script type="module" src="/js/app.js"></script></body></html>

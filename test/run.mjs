@@ -28,6 +28,7 @@ const browser = await chromium.launch();
 const ctx = await browser.newContext({ viewport: { width: 390, height: 844 }, acceptDownloads: true, hasTouch: true });
 let pass = 0, fail = 0; const fails = [];
 const only = process.argv[2];
+const PER = 150000;
 
 async function test(slug, fn) {
   if (only && !slug.includes(only)) return;
@@ -141,6 +142,28 @@ if (!only || only === 'home') {
     if (errs.length) throw new Error(errs.join('|')); pass++; console.log('✔ home');
   } catch (e) { fail++; fails.push('home'); console.log('✘ home →', e.message); await page.screenshot({ path: TMP + '/fail-home.png', fullPage: true }); }
 }
+
+// ---------- VÍDEO E ÁUDIO (ffmpeg.wasm; baixa o núcleo do CDN) ----------
+import { execFileSync } from 'node:child_process';
+const MP4 = join(TMP, 'teste.mp4'), WAV = join(TMP, 'teste.wav');
+execFileSync('ffmpeg', ['-y', '-v', 'error', '-f', 'lavfi', '-i', 'testsrc=size=320x240:rate=15:duration=4', '-f', 'lavfi', '-i', 'sine=frequency=440:duration=4', '-c:v', 'libx264', '-pix_fmt', 'yuv420p', '-c:a', 'aac', '-shortest', MP4]);
+execFileSync('ffmpeg', ['-y', '-v', 'error', '-f', 'lavfi', '-i', 'sine=frequency=440:duration=4', WAV]);
+const big = { timeout: 120000 };
+const runMedia = async (p, file, extra) => { await p.setInputFiles('#file', file); await p.waitForFunction(() => /\d:\d\d/.test(document.getElementById('info').textContent)); if (extra) await extra(); await p.click('#goBtn'); await p.waitForSelector('#dl', big); return dl(p, () => p.click('#dl')); };
+await test('comprimir-video', async p => { const f = await runMedia(p, MP4); eq(f.name, 'teste-leve.mp4'); eq(f.buf.slice(4, 8).toString(), 'ftyp'); });
+await test('cortar-video', async p => { const f = await runMedia(p, MP4, async () => { await p.selectOption('#mode', 'exact'); await p.fill('#ini', '1'); await p.fill('#fim', '3'); }); eq(f.buf.slice(4, 8).toString(), 'ftyp'); const d = execFileSync('ffprobe', ['-v', 'error', '-show_entries', 'format=duration', '-of', 'csv=p=0', '-i', '-'], { input: f.buf }).toString(); if (Math.abs(parseFloat(d) - 2) > 0.5) throw new Error('duração ' + d); });
+await test('video-para-gif', async p => { const f = await runMedia(p, MP4, async () => { await p.selectOption('#w', '320'); }); eq(f.buf.slice(0, 3).toString(), 'GIF'); });
+await test('extrair-audio', async p => { const f = await runMedia(p, MP4); eq(f.name, 'teste-audio.mp3'); if (f.buf.length < 1000) throw new Error('mp3 vazio'); });
+await test('cortar-audio', async p => { const f = await runMedia(p, WAV, async () => { await p.selectOption('#fmt', 'wav'); await p.fill('#ini', '1'); await p.fill('#fim', '2'); }); eq(f.buf.slice(0, 4).toString(), 'RIFF'); if (f.buf.length > readFileSync(WAV).length / 2) throw new Error('não cortou'); });
+await test('remover-fundo', async p => { const img = await mkImg(p, 'image/jpeg', 400, 300, 'fundo.jpg'); await p.setInputFiles('#file', img); await p.waitForSelector('#results li', big); await p.waitForSelector('#results li button', big); const f = await dl(p, () => p.click('#results li button')); eq(f.name, 'fundo-sem-fundo.png'); eq(f.buf.slice(1, 4).toString(), 'PNG'); });
+
+// ---------- HOME: peça sua tool (rede simulada) ----------
+{ const p = await ctx.newPage(); let body = null;
+  await p.route('**/rest/v1/rpc/multitool_pedir', r => { body = r.request().postDataJSON(); r.fulfill({ status: 200, contentType: 'application/json', body: '"ok"' }); });
+  try { await p.goto(BASE + '/'); await p.fill('#pedTxt', 'quero juntar vídeos'); await p.click('#pedBtn'); await p.waitForFunction(() => /recebido/.test(document.getElementById('pedSt').textContent));
+    eq(body.p_texto, 'quero juntar vídeos'); await p.fill('#pedTxt', 'outro pedido qualquer'); await p.click('#pedBtn'); has(await txt(p, '#pedSt'), 'Espere 1 minuto');
+    const ov = await p.evaluate(() => document.documentElement.scrollWidth - innerWidth); if (ov > 2) throw new Error('overflow ' + ov); pass++; console.log('✔ home pedido'); }
+  catch (e) { fail++; fails.push('home-pedido'); console.log('✘ home-pedido →', e.message); } await p.close(); }
 
 await browser.close(); srv.close();
 console.log(`\n${pass} ok, ${fail} falhas${fails.length ? ': ' + fails.join(', ') : ''}`);

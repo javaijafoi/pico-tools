@@ -112,3 +112,26 @@ export const canvasBlob = (c, type = 'image/png', q) => new Promise(res => c.toB
 export const sleep = ms => new Promise(r => setTimeout(r, ms));
 export const rand = n => { const a = new Uint32Array(1); const lim = 4294967296 - (4294967296 % n); let x; do { crypto.getRandomValues(a); x = a[0]; } while (x >= lim); return x % n; };
 export function shuffle(arr) { const a = [...arr]; for (let i = a.length - 1; i > 0; i--) { const j = rand(i + 1); [a[i], a[j]] = [a[j], a[i]]; } return a; }
+
+// ffmpeg.wasm (vídeo e áudio). O wrapper vem do próprio site; o núcleo (~30 MB) baixa uma vez de um CDN
+// público e fica em cache. O arquivo do usuário nunca sai do aparelho.
+const FF_CORE = 'https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.6/dist/umd/';
+let ffPromise;
+async function blobUrl(url, type) { const r = await fetch(url); if (!r.ok) throw new Error('Falha ao baixar o motor de vídeo'); return URL.createObjectURL(new Blob([await r.arrayBuffer()], { type })); }
+export function loadFFmpeg(onStep) {
+  return ffPromise ??= (async () => {
+    await loadScript(ROOT + 'vendor/ffmpeg.js');
+    const ff = new window.FFmpegWASM.FFmpeg();
+    onStep?.('Baixando o motor de vídeo (só na primeira vez, ~30 MB)…');
+    const [coreURL, wasmURL] = await Promise.all([blobUrl(FF_CORE + 'ffmpeg-core.js', 'text/javascript'), blobUrl(FF_CORE + 'ffmpeg-core.wasm', 'application/wasm')]);
+    await ff.load({ coreURL, wasmURL });
+    return ff;
+  })().catch(e => { ffPromise = null; throw e; });
+}
+// "1:30", "90", "0:01:30.5" → segundos
+export function parseTime(s) {
+  s = String(s).trim().replace(',', '.'); if (!s) return NaN;
+  const p = s.split(':').map(Number); if (p.some(x => isNaN(x) || x < 0) || p.length > 3) return NaN;
+  return p.reduce((a, x) => a * 60 + x, 0);
+}
+export function fmtTime(sec) { sec = Math.max(0, sec); const m = Math.floor(sec / 60), s = sec - m * 60; return m + ':' + s.toFixed(1).padStart(4, '0'); }
