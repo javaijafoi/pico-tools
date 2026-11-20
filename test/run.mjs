@@ -156,7 +156,10 @@ await test('cortar-video', async p => { const f = await runMedia(p, MP4, async (
 await test('video-para-gif', async p => { const f = await runMedia(p, MP4, async () => { await p.selectOption('#w', '320'); }); eq(f.buf.slice(0, 3).toString(), 'GIF'); });
 await test('extrair-audio', async p => { const f = await runMedia(p, MP4); eq(f.name, 'teste-audio.mp3'); if (f.buf.length < 1000) throw new Error('mp3 vazio'); });
 await test('cortar-audio', async p => { const f = await runMedia(p, WAV, async () => { await p.selectOption('#fmt', 'wav'); await p.fill('#ini', '1'); await p.fill('#fim', '2'); }); eq(f.buf.slice(0, 4).toString(), 'RIFF'); if (f.buf.length > readFileSync(WAV).length / 2) throw new Error('não cortou'); });
-await test('remover-fundo', async p => { const img = await mkImg(p, 'image/jpeg', 400, 300, 'fundo.jpg'); await p.setInputFiles('#file', img); await p.waitForSelector('#results li', big); await p.waitForSelector('#results li button', big); const f = await dl(p, () => p.click('#results li button')); eq(f.name, 'fundo-sem-fundo.png'); eq(f.buf.slice(1, 4).toString(), 'PNG'); });
+await test('remover-fundo', async p => { const img = await mkImg(p, 'image/jpeg', 400, 300, 'fundo.jpg'); await p.setInputFiles('#file', img); await p.waitForSelector('#results li', big); await p.waitForSelector('#results li button', big); const f = await dl(p, () => p.click('#results li button')); eq(f.name, 'fundo-sem-fundo.png'); eq(f.buf.slice(1, 4).toString(), 'PNG');
+  // retoque com pincel: apaga uma faixa, aplica e desfaz
+  await p.waitForSelector('#rcv'); const bb = await (await p.$('#rcv')).boundingBox(); await p.selectOption('#rmode', 'del'); await p.mouse.move(bb.x + 20, bb.y + bb.height / 2); await p.mouse.down(); await p.mouse.move(bb.x + bb.width - 20, bb.y + bb.height / 2, { steps: 6 }); await p.mouse.up();
+  await p.click('#rapply'); await p.waitForTimeout(800); await p.click('#rundo'); const g = await dl(p, () => p.click('#results li button')); eq(g.buf.slice(1, 4).toString(), 'PNG'); });
 
 // ---------- RECORTE E OCR ----------
 await test('recortar-imagem', async p => { const img = await mkImg(p, 'image/jpeg', 800, 600, 'crop.jpg'); await p.setInputFiles('#file', img); await p.waitForFunction(() => document.getElementById('cv').width > 0);

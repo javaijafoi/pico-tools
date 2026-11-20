@@ -117,26 +117,95 @@ export const tools = {
     root.append(h('p', { class: 'note', style: 'color:var(--lgray)', text: 'Dica: confira no seu celular (detalhes da foto) que a localização sumiu. Se você enviar a foto por apps como WhatsApp, eles já removem boa parte desses dados, mas outros canais não.' }));
   },
 
-  // Remove o fundo com um modelo de IA que roda no aparelho (baixa ~40 MB uma vez e fica em cache).
+  // Remove o fundo com IA no aparelho. Três modos: foto (rápido), foto (máxima qualidade) e ilustração/anime.
+  // Cada modo gera uma máscara (alfa); o resultado é sempre "original × máscara", o que permite retocar com pincel.
   'remover-fundo'(root) {
+    const modo = select([['foto', 'Foto (rápido)'], ['foto-max', 'Foto (máxima qualidade)'], ['anime', 'Ilustração / anime']], { id: 'modo' });
     const bg = select([['none', 'Transparente (PNG)'], ['#ffffff', 'Branco'], ['#000000', 'Preto'], ['custom', 'Outra cor…']], { id: 'bg' });
     const col = h('input', { type: 'color', id: 'col', value: '#00e436', hidden: true });
     bg.addEventListener('change', () => { col.hidden = bg.value !== 'custom'; });
-    let lib; const cuts = new WeakMap(); // o recorte por IA é a parte lenta: guarda por arquivo e só refaz o fundo ao mudar a cor
+    const msg = h('div', { class: 'status', id: 'modelmsg' });
+    const say = (t, c = '') => { msg.className = 'status ' + c; msg.textContent = t; };
+    const IMGLY = 'https://cdn.jsdelivr.net/npm/@imgly/background-removal@1.5.5/+esm';
+    const ORT = 'https://cdn.jsdelivr.net/npm/onnxruntime-web@1.19.2/dist/';
+    const ANIME = 'https://huggingface.co/skytnt/anime-seg/resolve/main/isnetis.onnx';
+    let lib, session; const states = new WeakMap(); // arquivo → { modo → { orig, mask } }
+
+    const cvs = (w, h_) => { const c = document.createElement('canvas'); c.width = w; c.height = h_; return c; };
+    // Baixa o modelo com barra de progresso e guarda no cache do navegador (só baixa uma vez).
+    async function fetchModel(url) {
+      const cache = await caches.open('pico-modelos').catch(() => null); let r = await cache?.match(url);
+      if (!r) {
+        const net = await fetch(url); if (!net.ok) throw new Error('Não consegui baixar o modelo de ilustração.');
+        const total = +net.headers.get('content-length') || 176069933, rd = net.body.getReader(), parts = []; let got = 0;
+        for (;;) { const { done, value } = await rd.read(); if (done) break; parts.push(value); got += value.length; say(`Baixando o modelo (só na primeira vez): ${Math.min(99, Math.round(got / total * 100))}%`); }
+        const blob = new Blob(parts, { type: 'application/octet-stream' }); try { await cache?.put(url, new Response(blob)); } catch {} return blob.arrayBuffer();
+      }
+      return r.arrayBuffer();
+    }
+    async function animeMask(orig) {
+      if (!session) {
+        await new Promise((ok, no) => { if (window.ort) return ok(); const s = h('script', { src: ORT + 'ort.min.js' }); s.onload = ok; s.onerror = () => no(new Error('Falha ao carregar o motor de IA')); document.head.append(s); });
+        window.ort.env.wasm.wasmPaths = ORT; window.ort.env.wasm.numThreads = 1;
+        const buf = await fetchModel(ANIME); say('Preparando o modelo…'); session = await window.ort.InferenceSession.create(buf, { executionProviders: ['wasm'] });
+      }
+      say('Recortando a ilustração… pode levar de 20 a 60 segundos.');
+      const S = 1024, W = orig.width, H = orig.height, k = Math.min(S / W, S / H), w = Math.round(W * k), h_ = Math.round(H * k), px = Math.floor((S - w) / 2), py = Math.floor((S - h_) / 2);
+      const inC = cvs(S, S), ic = inC.getContext('2d', { willReadFrequently: true }); ic.fillStyle = '#000'; ic.fillRect(0, 0, S, S); ic.imageSmoothingQuality = 'high'; ic.drawImage(orig, px, py, w, h_);
+      const d = ic.getImageData(0, 0, S, S).data, f = new Float32Array(3 * S * S);
+      for (let i = 0; i < S * S; i++) { f[i] = d[i * 4] / 255; f[S * S + i] = d[i * 4 + 1] / 255; f[2 * S * S + i] = d[i * 4 + 2] / 255; }
+      await new Promise(r => setTimeout(r, 30));
+      const out = await session.run({ img: new window.ort.Tensor('float32', f, [1, 3, S, S]) }); const m = out.mask.data;
+      const mc = cvs(S, S), mx = mc.getContext('2d'), id = mx.createImageData(S, S);
+      for (let i = 0; i < S * S; i++) { id.data[i * 4] = id.data[i * 4 + 1] = id.data[i * 4 + 2] = 255; id.data[i * 4 + 3] = Math.max(0, Math.min(255, (m[i] - 0.1) / 0.8 * 255)); } mx.putImageData(id, 0, 0); // curva leve acima: limpa o fiapo de fundo nas bordas
+      const mask = cvs(W, H), c = mask.getContext('2d'); c.imageSmoothingQuality = 'high'; c.drawImage(mc, px, py, w, h_, 0, 0, W, H); return mask;
+    }
+    async function photoMask(file, orig, model) {
+      lib ??= await import(IMGLY); say('Recortando… (na primeira vez baixa o modelo)');
+      const cut = await lib.removeBackground(file, { model, output: { format: 'image/png' } });
+      const im = await loadImage(cut); const mask = cvs(orig.width, orig.height), c = mask.getContext('2d'); c.drawImage(im, 0, 0, mask.width, mask.height);
+      c.globalCompositeOperation = 'source-in'; c.fillStyle = '#fff'; c.fillRect(0, 0, mask.width, mask.height); return mask;
+    }
+    const compose = (st, fill) => { const c = cvs(st.orig.width, st.orig.height), x = c.getContext('2d'); x.drawImage(st.orig, 0, 0); x.globalCompositeOperation = 'destination-in'; x.drawImage(st.mask, 0, 0);
+      if (fill !== 'none') { x.globalCompositeOperation = 'destination-over'; x.fillStyle = fill; x.fillRect(0, 0, c.width, c.height); } return c; };
+
+    const editor = { files: [], sel: null }; let refresh = () => {};
     batch(root, {
-      title: 'FOTOS', hint: 'pessoas, produtos, animais… ou arraste aqui', options: [field('Fundo', bg), col],
+      title: 'IMAGENS', hint: 'pessoas, produtos, animais, desenhos… ou arraste aqui', options: [field('Tipo de imagem', modo), field('Fundo', bg), col],
       process: async (img, f) => {
-        lib ??= await import('https://cdn.jsdelivr.net/npm/@imgly/background-removal@1.5.5/+esm');
-        let cut = cuts.get(f);
-        if (!cut) { cut = await lib.removeBackground(f, { model: 'isnet_fp16', output: { format: 'image/png' } }); cuts.set(f, cut); }
-        const fill = bg.value === 'custom' ? col.value : bg.value;
-        if (fill === 'none') return { blob: cut, name: baseName(f.name) + '-sem-fundo.png' };
-        const im = await loadImage(cut); const c = drawTo(im, im.naturalWidth, im.naturalHeight);
-        const ctx = c.getContext('2d'); ctx.globalCompositeOperation = 'destination-over'; ctx.fillStyle = fill; ctx.fillRect(0, 0, c.width, c.height);
+        let per = states.get(f); if (!per) states.set(f, per = {});
+        let st = per[modo.value];
+        if (!st) {
+          const orig = cvs(img.naturalWidth, img.naturalHeight); orig.getContext('2d').drawImage(img, 0, 0);
+          const mask = modo.value === 'anime' ? await animeMask(orig) : await photoMask(f, orig, modo.value === 'foto-max' ? 'isnet' : 'isnet_fp16');
+          st = per[modo.value] = { orig, mask, file: f }; say('');
+        }
+        if (!editor.files.includes(st)) editor.files.push(st); editor.sel ??= st; refresh();
+        const fill = bg.value === 'custom' ? col.value : bg.value; const c = compose(st, fill);
         return { blob: await canvasBlob(c, 'image/png'), name: baseName(f.name) + '-sem-fundo.png' };
       },
     });
-    root.append(h('p', { class: 'note', style: 'color:var(--lgray)', text: 'Na primeira vez o modelo de IA (~40 MB) é baixado e guardado no aparelho. A foto em si nunca sai daqui.' }));
+    root.insertBefore(panel('MODELO DE IA', msg, h('p', { class: 'note', style: 'color:#444', text: 'Dica: para desenhos, anime e arte digital use "Ilustração / anime" (baixa ~170 MB na primeira vez; melhor no PC). Para fotos use "Foto" (~40 MB) ou "máxima qualidade" (~170 MB). Os modelos ficam guardados no aparelho e a imagem nunca sai daqui.' })), root.children[1]);
+
+    // ---- Retoque com pincel ----
+    const pick = select([], { id: 'rsel' }), mode = select([['add', 'Restaurar (traz de volta)'], ['del', 'Apagar (tira)']], { id: 'rmode' });
+    const size = h('input', { type: 'range', id: 'rsize', min: 4, max: 120, value: 28 });
+    const cv = h('canvas', { id: 'rcv', style: 'width:100%;max-width:420px;touch-action:none;display:block;margin:8px auto;border:3px solid #000;background:repeating-conic-gradient(#ccc 0 25%,#fff 0 50%) 0 0/16px 16px' });
+    const undos = []; let down = null;
+    const rp = panel('RETOCAR COM PINCEL', h('p', { class: 'note', style: 'color:#444', text: 'Pintou errado ou faltou um pedaço? Restaure ou apague passando o dedo (ou o mouse) sobre a imagem. Depois toque em APLICAR.' }),
+      row(field('Imagem', pick), field('Pincel', mode), field('Tamanho do pincel', size)), cv);
+    rp.hidden = true; root.append(rp);
+    const cur = () => editor.sel;
+    const redraw = () => { const st = cur(); if (!st) return; const W = 420, k = W / st.orig.width; cv.width = W; cv.height = Math.max(1, Math.round(st.orig.height * k)); const c = cv.getContext('2d');
+      const t = cvs(cv.width, cv.height), x = t.getContext('2d'); x.drawImage(st.orig, 0, 0, t.width, t.height); x.globalCompositeOperation = 'destination-in'; x.drawImage(st.mask, 0, 0, t.width, t.height); c.drawImage(t, 0, 0); };
+    refresh = () => { rp.hidden = !editor.files.length; pick.replaceChildren(...editor.files.map((st, i) => h('option', { value: i, text: st.file.name }))); const i = editor.files.indexOf(editor.sel); pick.value = String(Math.max(0, i)); redraw(); };
+    pick.addEventListener('change', () => { editor.sel = editor.files[+pick.value]; undos.length = 0; redraw(); });
+    const pos = e => { const r = cv.getBoundingClientRect(), st = cur(); return [(e.clientX - r.left) / r.width * st.orig.width, (e.clientY - r.top) / r.height * st.orig.height]; };
+    const stroke = (a, b) => { const st = cur(), c = st.mask.getContext('2d'); c.save(); c.globalCompositeOperation = mode.value === 'add' ? 'source-over' : 'destination-out'; c.strokeStyle = c.fillStyle = '#fff'; c.lineCap = c.lineJoin = 'round'; c.lineWidth = +size.value * st.orig.width / 420; c.beginPath(); c.moveTo(a[0], a[1]); c.lineTo(b[0], b[1]); c.stroke(); c.restore(); };
+    cv.addEventListener('pointerdown', e => { const st = cur(); if (!st) return; cv.setPointerCapture(e.pointerId); const snap = cvs(st.mask.width, st.mask.height); snap.getContext('2d').drawImage(st.mask, 0, 0); undos.push(snap); if (undos.length > 8) undos.shift(); down = pos(e); stroke(down, down); redraw(); });
+    cv.addEventListener('pointermove', e => { if (!down) return; const p = pos(e); stroke(down, p); down = p; redraw(); });
+    ['pointerup', 'pointercancel'].forEach(ev => cv.addEventListener(ev, () => { down = null; }));
+    rp.append(row(btn('DESFAZER', () => { const st = cur(), u = undos.pop(); if (!st || !u) return; const c = st.mask.getContext('2d'); c.clearRect(0, 0, st.mask.width, st.mask.height); c.drawImage(u, 0, 0); redraw(); }, '', { id: 'rundo' }), btn('APLICAR RETOQUE', () => bg.dispatchEvent(new Event('input')), 'g', { id: 'rapply' })));
   },
 
   // Recorte com proporções prontas para redes sociais: arraste a área e use o zoom.
