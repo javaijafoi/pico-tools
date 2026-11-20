@@ -35,16 +35,16 @@ function batch(root, { title, options = [], process, hint, accept = 'image/*' })
         made.push({ blob: r.blob, name });
         const url = URL.createObjectURL(r.blob);
         const delta = r.blob.size - f.size;
-        results.append(h('li', null, h('img', { src: url, alt: '', style: 'width:44px;height:44px;object-fit:cover;border:2px solid #000;image-rendering:auto' }),
-          h('span', { class: 'n', text: name }), h('span', { class: 's', text: `${fmtBytes(f.size)} → ${fmtBytes(r.blob.size)}${r.info ? ' · ' + r.info : ''}` }),
-          h('button', { type: 'button', onclick: () => download(r.blob, name) }, '⬇')));
+        const before = URL.createObjectURL(f); const fig = (cap, src) => h('figure', null, h('a', { href: src, target: '_blank', rel: 'noopener', 'aria-label': 'abrir ' + cap }, h('img', { src, alt: cap })), h('figcaption', { text: cap }));
+        results.append(h('li', { class: 'res' }, h('div', { class: 'rh' }, h('span', { class: 'n', text: name }), h('span', { class: 's', text: `${fmtBytes(f.size)} → ${fmtBytes(r.blob.size)}${r.info ? ' · ' + r.info : ''}` }),
+          h('button', { type: 'button', onclick: () => download(r.blob, name) }, '⬇')), h('div', { class: 'cmp' }, fig('ANTES', before), fig('DEPOIS', url))));
       } catch (e) { results.append(h('li', null, h('span', { class: 'n bad', text: `${f.name}: ${e.message}` }))); }
     }
     prog.hide(); setStatus(st, made.length ? 'Pronto! Baixe abaixo.' : 'Nenhuma imagem processada.', made.length ? 'ok' : 'bad');
     zipBtn.hidden = made.length < 2;
   };
   const list = h('ul', { class: 'files', id: 'filelist' });
-  const draw = () => list.replaceChildren(...files.map((f, i) => h('li', null, h('span', { class: 'n', text: f.name }), h('span', { class: 's', text: fmtBytes(f.size) }), h('button', { type: 'button', onclick: () => { files.splice(i, 1); draw(); } }, '✕'))));
+  const draw = () => list.replaceChildren(...files.map((f, i) => h('li', null, h('img', { src: f._url ??= URL.createObjectURL(f), alt: '', class: 'mini' }), h('span', { class: 'n', text: f.name }), h('span', { class: 's', text: fmtBytes(f.size) }), h('button', { type: 'button', onclick: () => { files.splice(i, 1); draw(); } }, '✕'))));
   const go_ = btn('PROCESSAR', go, 'g', { id: 'goBtn' });
   const dz = dropzone({ accept, multiple: true, label: 'ESCOLHER IMAGENS', hint: hint || 'ou arraste aqui (várias de uma vez)', onFiles: fs => { files.push(...fs.filter(f => f.type.startsWith('image/') || /\.(png|jpe?g|webp|gif|bmp|avif)$/i.test(f.name))); draw(); if (files.length) go(); } });
   root.append(panel(title, dz, list), options.length ? panel('AJUSTES', row(...options)) : '', panel('RESULTADO', go_, st, prog, results, row(zipBtn)));
@@ -167,7 +167,7 @@ export const tools = {
       const c = document.createElement('canvas'); c.width = ow; c.height = oh; const x = c.getContext('2d'); if (fmt.value === 'image/jpeg') { x.fillStyle = '#fff'; x.fillRect(0, 0, ow, oh); } x.imageSmoothingQuality = 'high';
       x.drawImage(img, cx - w / 2, cy - h_ / 2, w, h_, 0, 0, ow, oh);
       const blob = await canvasBlob(c, fmt.value, 0.92); const name = baseName(file.name) + `-${ow}x${oh}.` + EXT[blob.type || fmt.value];
-      results.replaceChildren(h('li', null, h('img', { src: URL.createObjectURL(blob), alt: '', style: 'width:44px;height:44px;object-fit:cover;border:2px solid #000' }), h('span', { class: 'n', text: name }), h('span', { class: 's', text: `${ow}×${oh} · ${fmtBytes(blob.size)}` }), h('button', { type: 'button', id: 'dl', onclick: () => download(blob, name) }, '⬇')));
+      results.replaceChildren(h('li', { class: 'res' }, h('div', { class: 'rh' }, h('span', { class: 'n', text: name }), h('span', { class: 's', text: `${ow}×${oh} · ${fmtBytes(blob.size)}` }), h('button', { type: 'button', id: 'dl', onclick: () => download(blob, name) }, '⬇')), h('div', { class: 'cmp one' }, h('figure', null, h('img', { src: URL.createObjectURL(blob), alt: 'resultado' }), h('figcaption', { text: 'RESULTADO' })))));
       setStatus(st, 'Pronto! Baixe abaixo.', 'ok');
     }, 'g', { id: 'goBtn' });
     const dz = dropzone({ accept: 'image/*', label: 'ESCOLHER IMAGEM', onFiles: async fs => { file = fs[0]; try { img = await loadImage(file); cx = img.naturalWidth / 2; cy = img.naturalHeight / 2; zoom.value = 100; draw(); setStatus(st, 'Arraste a área amarela para escolher o enquadramento.'); } catch (e) { setStatus(st, e.message, 'bad'); } } });
