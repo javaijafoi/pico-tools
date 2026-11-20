@@ -26,6 +26,7 @@ const A = await mkPdf('a.pdf', 5, 'A'), B = await mkPdf('b.pdf', 3, 'B');
 
 const browser = await chromium.launch();
 const ctx = await browser.newContext({ viewport: { width: 390, height: 844 }, acceptDownloads: true, hasTouch: true });
+await ctx.addInitScript(() => { try { localStorage.setItem('fav-aviso', String(Date.now())); } catch {} });
 let pass = 0, fail = 0; const fails = [];
 const only = process.argv[2];
 const PER = 150000;
@@ -164,6 +165,12 @@ await test('remover-fundo', async p => { const img = await mkImg(p, 'image/jpeg'
     eq(body.p_texto, 'quero juntar vídeos'); await p.fill('#pedTxt', 'outro pedido qualquer'); await p.click('#pedBtn'); has(await txt(p, '#pedSt'), 'Espere 1 minuto');
     const ov = await p.evaluate(() => document.documentElement.scrollWidth - innerWidth); if (ov > 2) throw new Error('overflow ' + ov); pass++; console.log('✔ home pedido'); }
   catch (e) { fail++; fails.push('home-pedido'); console.log('✘ home-pedido →', e.message); } await p.close(); }
+
+// ---------- convite de favoritos ----------
+{ const c2 = await browser.newContext({ viewport: { width: 390, height: 844 }, hasTouch: true }); const p = await c2.newPage();
+  try { await p.goto(BASE + '/'); await p.waitForSelector('.fav', { timeout: 8000 }); has(await txt(p, '.fav'), 'favoritos'); await p.click('#favNao'); eq(await p.$$eval('.fav', l => l.length), 0);
+    await p.reload(); await p.waitForTimeout(4600); eq(await p.$$eval('.fav', l => l.length), 0); pass++; console.log('✔ convite favoritos'); }
+  catch (e) { fail++; fails.push('favoritos'); console.log('✘ favoritos →', e.message); } await c2.close(); }
 
 await browser.close(); srv.close();
 console.log(`\n${pass} ok, ${fail} falhas${fails.length ? ': ' + fails.join(', ') : ''}`);
