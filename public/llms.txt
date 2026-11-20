@@ -1,4 +1,4 @@
-# Pico Tools
+# Pico Multitool
 
 > 41 ferramentas gratuitas em português que rodam inteiras no navegador (PDF, imagem, texto, geradores, calculadoras e utilidades de desenvolvedor). Nada é enviado a servidores. Feito por Peter Mac (javaijafoi), em estilo PICO-8. Código aberto (MIT): https://github.com/javaijafoi/pico-tools
 
