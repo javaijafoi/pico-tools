@@ -2,6 +2,8 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 <url><loc>https://pico-tools-javaijafoi.vercel.app/</loc><lastmod>2026-11-20</lastmod><priority>1.0</priority></url>
 <url><loc>https://pico-tools-javaijafoi.vercel.app/remover-fundo/</loc><lastmod>2026-11-20</lastmod><priority>0.8</priority></url>
+<url><loc>https://pico-tools-javaijafoi.vercel.app/recortar-imagem/</loc><lastmod>2026-11-20</lastmod><priority>0.8</priority></url>
+<url><loc>https://pico-tools-javaijafoi.vercel.app/extrair-texto-imagem/</loc><lastmod>2026-11-20</lastmod><priority>0.8</priority></url>
 <url><loc>https://pico-tools-javaijafoi.vercel.app/converter-imagem/</loc><lastmod>2026-11-20</lastmod><priority>0.8</priority></url>
 <url><loc>https://pico-tools-javaijafoi.vercel.app/comprimir-imagem/</loc><lastmod>2026-11-20</lastmod><priority>0.8</priority></url>
 <url><loc>https://pico-tools-javaijafoi.vercel.app/redimensionar-imagem/</loc><lastmod>2026-11-20</lastmod><priority>0.8</priority></url>
@@ -11,6 +13,7 @@
 <url><loc>https://pico-tools-javaijafoi.vercel.app/video-para-gif/</loc><lastmod>2026-11-20</lastmod><priority>0.8</priority></url>
 <url><loc>https://pico-tools-javaijafoi.vercel.app/extrair-audio/</loc><lastmod>2026-11-20</lastmod><priority>0.8</priority></url>
 <url><loc>https://pico-tools-javaijafoi.vercel.app/cortar-audio/</loc><lastmod>2026-11-20</lastmod><priority>0.8</priority></url>
+<url><loc>https://pico-tools-javaijafoi.vercel.app/pdf-para-texto/</loc><lastmod>2026-11-20</lastmod><priority>0.8</priority></url>
 <url><loc>https://pico-tools-javaijafoi.vercel.app/juntar-pdf/</loc><lastmod>2026-11-20</lastmod><priority>0.8</priority></url>
 <url><loc>https://pico-tools-javaijafoi.vercel.app/dividir-pdf/</loc><lastmod>2026-11-20</lastmod><priority>0.8</priority></url>
 <url><loc>https://pico-tools-javaijafoi.vercel.app/girar-pdf/</loc><lastmod>2026-11-20</lastmod><priority>0.8</priority></url>

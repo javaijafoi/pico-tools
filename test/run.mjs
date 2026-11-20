@@ -158,6 +158,18 @@ await test('extrair-audio', async p => { const f = await runMedia(p, MP4); eq(f.
 await test('cortar-audio', async p => { const f = await runMedia(p, WAV, async () => { await p.selectOption('#fmt', 'wav'); await p.fill('#ini', '1'); await p.fill('#fim', '2'); }); eq(f.buf.slice(0, 4).toString(), 'RIFF'); if (f.buf.length > readFileSync(WAV).length / 2) throw new Error('não cortou'); });
 await test('remover-fundo', async p => { const img = await mkImg(p, 'image/jpeg', 400, 300, 'fundo.jpg'); await p.setInputFiles('#file', img); await p.waitForSelector('#results li', big); await p.waitForSelector('#results li button', big); const f = await dl(p, () => p.click('#results li button')); eq(f.name, 'fundo-sem-fundo.png'); eq(f.buf.slice(1, 4).toString(), 'PNG'); });
 
+// ---------- RECORTE E OCR ----------
+await test('recortar-imagem', async p => { const img = await mkImg(p, 'image/jpeg', 800, 600, 'crop.jpg'); await p.setInputFiles('#file', img); await p.waitForFunction(() => document.getElementById('cv').width > 0);
+  await p.selectOption('#preset', '0.5625'); await p.click('#goBtn'); await p.waitForSelector('#dl'); const f = await dl(p, () => p.click('#dl')); const [w, h] = await imgInfo(p, f.buf, 'image/jpeg'); if (Math.abs(w / h - 0.5625) > 0.02) throw new Error(`proporção ${w}x${h}`);
+  await p.selectOption('#preset', '1'); await p.selectOption('#outw', '720'); await p.click('#goBtn'); const g = await dl(p, () => p.click('#dl')); eq((await imgInfo(p, g.buf, 'image/jpeg')).join('x'), '600x600'); });
+async function mkTextImg(page, name) {
+  const b64 = await page.evaluate(() => { const c = document.createElement('canvas'); c.width = 900; c.height = 300; const x = c.getContext('2d'); x.fillStyle = '#fff'; x.fillRect(0, 0, 900, 300); x.fillStyle = '#000'; x.font = '44px sans-serif'; x.fillText('Olá, mundo! Teste de leitura', 40, 110); x.fillText('Nota fiscal número 12345', 40, 200); return c.toDataURL('image/png').split(',')[1]; });
+  const path = join(TMP, name); writeFileSync(path, Buffer.from(b64, 'base64')); return path;
+}
+await test('extrair-texto-imagem', async p => { const img = await mkTextImg(p, 'texto.png'); await p.setInputFiles('#file', img); await p.click('#goBtn'); await p.waitForFunction(() => document.getElementById('out').value.length > 5, null, { timeout: 120000 }); const t = await p.inputValue('#out'); has(t.toLowerCase(), 'mundo'); has(t, '12345'); });
+await test('pdf-para-texto', async p => { const img = await mkTextImg(p, 'texto2.png'); const d = await PDFDocument.create(); const im = await d.embedPng(readFileSync(img)); const pg = d.addPage([450, 150]); pg.drawImage(im, { x: 0, y: 0, width: 450, height: 150 }); const path = join(TMP, 'escaneado.pdf'); writeFileSync(path, await d.save());
+  await p.setInputFiles('#file', path); await p.click('#goBtn'); await p.waitForFunction(() => document.getElementById('out').value.length > 5, null, { timeout: 120000 }); has((await p.inputValue('#out')).toLowerCase(), 'mundo'); });
+
 // ---------- HOME: peça sua tool (rede simulada) ----------
 { const p = await ctx.newPage(); let body = null;
   await p.route('**/rest/v1/rpc/multitool_pedir', r => { body = r.request().postDataJSON(); r.fulfill({ status: 200, contentType: 'application/json', body: '"ok"' }); });

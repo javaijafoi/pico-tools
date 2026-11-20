@@ -1,9 +1,11 @@
 # Pico Multitool
 
-> 47 ferramentas gratuitas em português que rodam inteiras no navegador (PDF, imagem, texto, geradores, calculadoras e utilidades de desenvolvedor). Nada é enviado a servidores. Feito por Peter Mac (javaijafoi), em estilo PICO-8. Código aberto (MIT): https://github.com/javaijafoi/pico-tools
+> 50 ferramentas gratuitas em português que rodam inteiras no navegador (PDF, imagem, texto, geradores, calculadoras e utilidades de desenvolvedor). Nada é enviado a servidores. Feito por Peter Mac (javaijafoi), em estilo PICO-8. Código aberto (MIT): https://github.com/javaijafoi/pico-tools
 
 ## IMAGEM
 - [Remover fundo da imagem](https://pico-tools-javaijafoi.vercel.app/remover-fundo/): Tira o fundo de fotos com IA, direto no seu aparelho.
+- [Recortar imagem para redes sociais](https://pico-tools-javaijafoi.vercel.app/recortar-imagem/): Recorta em 1:1, 4:5, 9:16, 16:9 e outras proporções prontas.
+- [Extrair texto de imagem (OCR)](https://pico-tools-javaijafoi.vercel.app/extrair-texto-imagem/): Lê o texto de prints e fotos de documentos e copia para você.
 - [Converter imagem](https://pico-tools-javaijafoi.vercel.app/converter-imagem/): PNG, JPG e WebP: converta entre formatos.
 - [Comprimir imagem](https://pico-tools-javaijafoi.vercel.app/comprimir-imagem/): Reduz o peso da foto escolhendo a qualidade.
 - [Redimensionar imagem](https://pico-tools-javaijafoi.vercel.app/redimensionar-imagem/): Muda largura e altura em pixels ou por porcentagem.
@@ -19,6 +21,7 @@
 - [Cortar áudio](https://pico-tools-javaijafoi.vercel.app/cortar-audio/): Corta um trecho de áudio e salva em MP3, WAV ou M4A.
 
 ## PDF
+- [PDF escaneado para texto (OCR)](https://pico-tools-javaijafoi.vercel.app/pdf-para-texto/): Tira o texto de PDFs escaneados e baixa em .txt.
 - [Juntar PDF](https://pico-tools-javaijafoi.vercel.app/juntar-pdf/): Une vários PDFs em um só, na ordem que você quiser.
 - [Dividir PDF](https://pico-tools-javaijafoi.vercel.app/dividir-pdf/): Divide por intervalo, por páginas ou em partes iguais.
 - [Girar PDF](https://pico-tools-javaijafoi.vercel.app/girar-pdf/): Gira todas as páginas ou só as que escolher.

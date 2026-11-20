@@ -138,4 +138,39 @@ export const tools = {
     });
     root.append(h('p', { class: 'note', style: 'color:var(--lgray)', text: 'Na primeira vez o modelo de IA (~40 MB) é baixado e guardado no aparelho. A foto em si nunca sai daqui.' }));
   },
+
+  // Recorte com proporções prontas para redes sociais: arraste a área e use o zoom.
+  'recortar-imagem'(root) {
+    const PRESETS = [['1', '1:1 · Perfil e feed quadrado'], ['0.8', '4:5 · Feed do Instagram'], ['0.5625', '9:16 · Stories, Reels e TikTok'], ['1.7778', '16:9 · YouTube e capa'], ['1.5', '3:2 · Foto clássica'], ['1.91', '1,91:1 · Link no Facebook e LinkedIn'], ['3', '3:1 · Capa do X/Twitter'], ['0.75', '3:4 · Retrato']];
+    const preset = select(PRESETS, { id: 'preset' });
+    const zoom = h('input', { type: 'range', id: 'zoom', min: 10, max: 100, value: 100 });
+    const outw = select([['0', 'Tamanho original do recorte'], ['1080', 'Largura 1080 px'], ['720', 'Largura 720 px']], { id: 'outw' });
+    const fmt = select([['image/jpeg', 'JPG'], ['image/png', 'PNG'], ['image/webp', 'WebP']], { id: 'fmt' });
+    const st = status(); const cv = h('canvas', { id: 'cv', style: 'width:100%;max-width:420px;touch-action:none;background:#000;display:block;margin:8px auto' });
+    const results = h('ul', { class: 'files', id: 'results' });
+    let img = null, file = null, cx = 0, cy = 0; // centro do recorte em px da imagem
+    const dims = () => { const r = +preset.value; let w = Math.min(img.naturalWidth, img.naturalHeight * r); let h_ = w / r; const k = zoom.value / 100; return [w * k, h_ * k]; };
+    const clamp = () => { const [w, h_] = dims(); cx = Math.min(Math.max(cx, w / 2), img.naturalWidth - w / 2); cy = Math.min(Math.max(cy, h_ / 2), img.naturalHeight - h_ / 2); };
+    const draw = () => {
+      if (!img) return; clamp(); const [w, h_] = dims(); const W = 420, k = W / img.naturalWidth; cv.width = W; cv.height = Math.round(img.naturalHeight * k);
+      const c = cv.getContext('2d'); c.drawImage(img, 0, 0, cv.width, cv.height); c.fillStyle = 'rgba(0,0,0,.6)'; c.fillRect(0, 0, cv.width, cv.height);
+      const x = (cx - w / 2) * k, y = (cy - h_ / 2) * k; c.drawImage(img, cx - w / 2, cy - h_ / 2, w, h_, x, y, w * k, h_ * k); c.strokeStyle = '#ffec27'; c.lineWidth = 3; c.strokeRect(x + 1.5, y + 1.5, w * k - 3, h_ * k - 3);
+    };
+    let drag = null;
+    cv.addEventListener('pointerdown', e => { if (!img) return; cv.setPointerCapture(e.pointerId); drag = [e.clientX, e.clientY, cx, cy]; });
+    cv.addEventListener('pointermove', e => { if (!drag) return; const k = img.naturalWidth / cv.getBoundingClientRect().width; cx = drag[2] + (e.clientX - drag[0]) * k; cy = drag[3] + (e.clientY - drag[1]) * k; draw(); });
+    ['pointerup', 'pointercancel'].forEach(ev => cv.addEventListener(ev, () => { drag = null; }));
+    [preset, zoom].forEach(el => el.addEventListener('input', draw));
+    const goBtn = btn('RECORTAR', async () => {
+      if (!img) return setStatus(st, 'Escolha uma imagem primeiro.', 'bad');
+      const [w, h_] = dims(); const ow = +outw.value ? Math.min(+outw.value, Math.round(w)) : Math.round(w); const oh = Math.round(ow * h_ / w);
+      const c = document.createElement('canvas'); c.width = ow; c.height = oh; const x = c.getContext('2d'); if (fmt.value === 'image/jpeg') { x.fillStyle = '#fff'; x.fillRect(0, 0, ow, oh); } x.imageSmoothingQuality = 'high';
+      x.drawImage(img, cx - w / 2, cy - h_ / 2, w, h_, 0, 0, ow, oh);
+      const blob = await canvasBlob(c, fmt.value, 0.92); const name = baseName(file.name) + `-${ow}x${oh}.` + EXT[blob.type || fmt.value];
+      results.replaceChildren(h('li', null, h('img', { src: URL.createObjectURL(blob), alt: '', style: 'width:44px;height:44px;object-fit:cover;border:2px solid #000' }), h('span', { class: 'n', text: name }), h('span', { class: 's', text: `${ow}×${oh} · ${fmtBytes(blob.size)}` }), h('button', { type: 'button', id: 'dl', onclick: () => download(blob, name) }, '⬇')));
+      setStatus(st, 'Pronto! Baixe abaixo.', 'ok');
+    }, 'g', { id: 'goBtn' });
+    const dz = dropzone({ accept: 'image/*', label: 'ESCOLHER IMAGEM', onFiles: async fs => { file = fs[0]; try { img = await loadImage(file); cx = img.naturalWidth / 2; cy = img.naturalHeight / 2; zoom.value = 100; draw(); setStatus(st, 'Arraste a área amarela para escolher o enquadramento.'); } catch (e) { setStatus(st, e.message, 'bad'); } } });
+    root.append(panel('IMAGEM', dz, cv), panel('AJUSTES', row(field('Proporção', preset), field('Zoom do recorte', zoom)), row(field('Saída', outw), field('Formato', fmt))), panel('RESULTADO', goBtn, st, results));
+  },
 };
