@@ -122,12 +122,13 @@ export const tools = {
     const bg = select([['none', 'Transparente (PNG)'], ['#ffffff', 'Branco'], ['#000000', 'Preto'], ['custom', 'Outra cor…']], { id: 'bg' });
     const col = h('input', { type: 'color', id: 'col', value: '#00e436', hidden: true });
     bg.addEventListener('change', () => { col.hidden = bg.value !== 'custom'; });
-    let lib;
+    let lib; const cuts = new WeakMap(); // o recorte por IA é a parte lenta: guarda por arquivo e só refaz o fundo ao mudar a cor
     batch(root, {
       title: 'FOTOS', hint: 'pessoas, produtos, animais… ou arraste aqui', options: [field('Fundo', bg), col],
       process: async (img, f) => {
         lib ??= await import('https://cdn.jsdelivr.net/npm/@imgly/background-removal@1.5.5/+esm');
-        const cut = await lib.removeBackground(f, { model: 'isnet_fp16', output: { format: 'image/png' } });
+        let cut = cuts.get(f);
+        if (!cut) { cut = await lib.removeBackground(f, { model: 'isnet_fp16', output: { format: 'image/png' } }); cuts.set(f, cut); }
         const fill = bg.value === 'custom' ? col.value : bg.value;
         if (fill === 'none') return { blob: cut, name: baseName(f.name) + '-sem-fundo.png' };
         const im = await loadImage(cut); const c = drawTo(im, im.naturalWidth, im.naturalHeight);

@@ -73,3 +73,21 @@ if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
 }
 const slug = document.body.dataset.tool;
 if (slug) tool(slug); else home();
+
+// Convite para salvar nos favoritos: instalar (Android e Chrome), adicionar à tela de início (iPhone) ou favoritar (PC).
+// Aparece uma vez, some ao tocar em qualquer botão e só volta depois de 30 dias.
+(function favorito() {
+  const KEY = 'fav-aviso';
+  try { if (matchMedia('(display-mode: standalone)').matches || navigator.standalone) return; const t = +localStorage.getItem(KEY); if (t && Date.now() - t < 30 * 864e5) return; } catch { return; }
+  let ev = null; addEventListener('beforeinstallprompt', e => { e.preventDefault(); ev = e; });
+  const ios = /iphone|ipad|ipod/i.test(navigator.userAgent), touch = matchMedia('(pointer:coarse)').matches;
+  setTimeout(() => {
+    if (document.querySelector('.fav')) return;
+    const close = () => { try { localStorage.setItem(KEY, String(Date.now())); } catch {} bar.remove(); };
+    const msg = ev ? 'Quer guardar o Pico Multitool no seu aparelho?' : ios ? 'Guarde nos favoritos: toque em Compartilhar e depois em "Adicionar à Tela de Início".' : touch ? 'Guarde nos favoritos: abra o menu do navegador e escolha "Adicionar à tela inicial".' : 'Guarde nos favoritos: aperte Ctrl+D (ou ⌘+D no Mac).';
+    const bar = h('div', { class: 'fav', role: 'dialog', 'aria-label': 'Salvar nos favoritos' }, h('p', { text: '⭐ ' + msg }),
+      h('div', { class: 'fav-b' }, ev ? h('button', { type: 'button', class: 'btn g', id: 'favSim', onclick: async () => { const e = ev; ev = null; close(); try { await e.prompt(); } catch {} } }, 'SALVAR') : null,
+        h('button', { type: 'button', class: 'btn', id: 'favNao', onclick: close }, ev ? 'AGORA NÃO' : 'OK')));
+    document.body.append(bar);
+  }, 4000);
+})();

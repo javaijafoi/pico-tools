@@ -115,3 +115,7 @@ footer a{color:var(--yellow)}
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
 @media(max-width:560px){body{font-size:21px}.cmp{grid-template-columns:1fr}.top .meta{display:none}.card{min-height:96px}.grid{grid-template-columns:1fr}}
 @media(prefers-reduced-motion:no-preference){.card{transition:transform .06s}}
+
+.fav{position:fixed;left:12px;right:12px;bottom:max(12px,env(safe-area-inset-bottom));z-index:60;background:#000;border:3px solid var(--lime);padding:12px;max-width:520px;margin:0 auto}
+.fav p{margin:0 0 10px;font-size:22px;line-height:1.1}
+.fav-b{display:flex;gap:10px}.fav-b .btn{flex:1}
