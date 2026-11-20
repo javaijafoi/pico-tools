@@ -19,7 +19,7 @@ const head = ({ title, desc, url, extra = '' }) => `<!doctype html>
 <meta name="author" content="Peter Mac (javaijafoi)">
 <meta name="theme-color" content="#1d2b53">
 <link rel="canonical" href="${url}">
-<meta property="og:type" content="website"><meta property="og:site_name" content="Pico Tools"><meta property="og:locale" content="pt_BR">
+<meta property="og:type" content="website"><meta property="og:site_name" content="Pico Multitool"><meta property="og:locale" content="pt_BR">
 <meta property="og:url" content="${url}"><meta property="og:title" content="${esc(title)}"><meta property="og:description" content="${esc(desc)}">
 <meta property="og:image" content="${SITE}/og.png"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image"><meta name="twitter:image" content="${SITE}/og.png">
@@ -30,7 +30,7 @@ ${extra}
 </head>`;
 
 const footer = `<footer>
-<p>PICO TOOLS · tudo roda no seu aparelho, nada é enviado</p>
+<p>PICO MULTITOOL · tudo roda no seu aparelho, nada é enviado</p>
 <p>feito por <a href="https://javaijafoi.vercel.app">Peter Mac (javaijafoi)</a> · <a href="https://github.com/javaijafoi/pico-tools">código no GitHub</a> · MIT</p>
 </footer>`;
 
@@ -42,11 +42,11 @@ const out = (path, data) => { const dir = path.split('/').slice(0, -1).join('/')
 // HOME
 const homeDesc = `${TOOLS.length} ferramentas grátis que rodam no seu navegador: juntar e dividir PDF, comprimir imagem, gerar CPF e CNPJ, QR Code, contador de palavras e mais. Sem upload, funciona no celular.`;
 out('index.html', head({
-  title: `Pico Tools · ${TOOLS.length} ferramentas grátis que rodam no seu aparelho`, desc: homeDesc, url: SITE + '/',
+  title: `Pico Multitool · ${TOOLS.length} ferramentas grátis que rodam no seu aparelho`, desc: homeDesc, url: SITE + '/',
   extra: ld({ '@context': 'https://schema.org', '@graph': [
-    { '@type': 'WebSite', '@id': SITE + '/#site', url: SITE + '/', name: 'Pico Tools', description: homeDesc, inLanguage: 'pt-BR', author: { '@id': PERSON['@id'] } },
+    { '@type': 'WebSite', '@id': SITE + '/#site', url: SITE + '/', name: 'Pico Multitool', description: homeDesc, inLanguage: 'pt-BR', author: { '@id': PERSON['@id'] } },
     PERSON,
-    { '@type': 'ItemList', name: 'Ferramentas do Pico Tools', itemListElement: TOOLS.map((t, i) => ({ '@type': 'ListItem', position: i + 1, url: `${SITE}/${t.slug}/`, name: t.name })) },
+    { '@type': 'ItemList', name: 'Ferramentas do Pico Multitool', itemListElement: TOOLS.map((t, i) => ({ '@type': 'ListItem', position: i + 1, url: `${SITE}/${t.slug}/`, name: t.name })) },
   ] }),
 }) + `
 <body><div class="wrap">
@@ -68,16 +68,16 @@ ${footer}
 // FERRAMENTAS
 for (const t of TOOLS) {
   const url = `${SITE}/${t.slug}/`;
-  const title = `${t.name} grátis, online e sem upload · Pico Tools`;
+  const title = `${t.name} grátis, online e sem upload · Pico Multitool`;
   const rel = TOOLS.filter(x => x.cat === t.cat && x.slug !== t.slug).slice(0, 4);
   out(`${t.slug}/index.html`, head({ title, desc: `${t.seo} Grátis, sem cadastro e roda no seu aparelho.`, url,
     extra: ld({ '@context': 'https://schema.org', '@graph': [
       { '@type': 'WebApplication', '@id': url + '#app', url, name: t.name, description: t.seo, applicationCategory: 'UtilitiesApplication', operatingSystem: 'Any (navegador)', inLanguage: 'pt-BR', browserRequirements: 'Requer JavaScript', offers: { '@type': 'Offer', price: '0', priceCurrency: 'BRL' }, isPartOf: { '@id': SITE + '/#site' }, author: { '@id': PERSON['@id'] } },
-      { '@type': 'BreadcrumbList', itemListElement: [{ '@type': 'ListItem', position: 1, name: 'Pico Tools', item: SITE + '/' }, { '@type': 'ListItem', position: 2, name: CATS[t.cat].name, item: SITE + '/#' + t.cat }, { '@type': 'ListItem', position: 3, name: t.name, item: url }] },
+      { '@type': 'BreadcrumbList', itemListElement: [{ '@type': 'ListItem', position: 1, name: 'Pico Multitool', item: SITE + '/' }, { '@type': 'ListItem', position: 2, name: CATS[t.cat].name, item: SITE + '/#' + t.cat }, { '@type': 'ListItem', position: 3, name: t.name, item: url }] },
     ] }) }) + `
 <body data-tool="${t.slug}"><div class="wrap">
 ${topbar}
-<nav class="crumb" aria-label="Você está em"><a href="/">PICO TOOLS</a> › ${CATS[t.cat].name}</nav>
+<nav class="crumb" aria-label="Você está em"><a href="/">PICO MULTITOOL</a> › ${CATS[t.cat].name}</nav>
 <div class="tool-h"><span class="ic" aria-hidden="true">${t.icon}</span><h1>${esc(t.name)}</h1></div>
 <p class="lead">${esc(t.desc)}</p>
 <main id="tool"><div class="panel"><h2>CARREGANDO…</h2><noscript>Esta ferramenta precisa de JavaScript ligado no navegador.</noscript></div></main>
@@ -92,9 +92,9 @@ ${footer}
 const today = new Date().toISOString().slice(0, 10);
 out('sitemap.xml', `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${[['/', '1.0'], ...TOOLS.map(t => [`/${t.slug}/`, '0.8'])].map(([p, pr]) => `<url><loc>${SITE}${p}</loc><lastmod>${today}</lastmod><priority>${pr}</priority></url>`).join('\n')}\n</urlset>\n`);
 out('robots.txt', `User-agent: *\nAllow: /\n\nSitemap: ${SITE}/sitemap.xml\n`);
-out('llms.txt', `# Pico Tools\n\n> ${TOOLS.length} ferramentas gratuitas em português que rodam inteiras no navegador (PDF, imagem, texto, geradores, calculadoras e utilidades de desenvolvedor). Nada é enviado a servidores. Feito por Peter Mac (javaijafoi), em estilo PICO-8. Código aberto (MIT): https://github.com/javaijafoi/pico-tools\n\n${Object.entries(CATS).map(([k, c]) => `## ${c.name}\n${TOOLS.filter(t => t.cat === k).map(t => `- [${t.name}](${SITE}/${t.slug}/): ${t.desc}`).join('\n')}`).join('\n\n')}\n\n## Autor\n- [Portfólio de Peter Mac](https://javaijafoi.vercel.app)\n- [GitHub](https://github.com/javaijafoi)\n`);
+out('llms.txt', `# Pico Multitool\n\n> ${TOOLS.length} ferramentas gratuitas em português que rodam inteiras no navegador (PDF, imagem, texto, geradores, calculadoras e utilidades de desenvolvedor). Nada é enviado a servidores. Feito por Peter Mac (javaijafoi), em estilo PICO-8. Código aberto (MIT): https://github.com/javaijafoi/pico-tools\n\n${Object.entries(CATS).map(([k, c]) => `## ${c.name}\n${TOOLS.filter(t => t.cat === k).map(t => `- [${t.name}](${SITE}/${t.slug}/): ${t.desc}`).join('\n')}`).join('\n\n')}\n\n## Autor\n- [Portfólio de Peter Mac](https://javaijafoi.vercel.app)\n- [GitHub](https://github.com/javaijafoi)\n`);
 
-out('manifest.webmanifest', JSON.stringify({ name: 'Pico Tools', short_name: 'Pico Tools', description: homeDesc, lang: 'pt-BR', start_url: '/', scope: '/', display: 'standalone', background_color: '#1d2b53', theme_color: '#1d2b53', icons: [{ src: '/icon-192.png', sizes: '192x192', type: 'image/png' }, { src: '/icon-512.png', sizes: '512x512', type: 'image/png', purpose: 'any maskable' }], shortcuts: TOOLS.slice(0, 4).map(t => ({ name: t.name, url: `/${t.slug}/` })) }, null, 1));
+out('manifest.webmanifest', JSON.stringify({ name: 'Pico Multitool', short_name: 'Pico Multitool', description: homeDesc, lang: 'pt-BR', start_url: '/', scope: '/', display: 'standalone', background_color: '#1d2b53', theme_color: '#1d2b53', icons: [{ src: '/icon-192.png', sizes: '192x192', type: 'image/png' }, { src: '/icon-512.png', sizes: '512x512', type: 'image/png', purpose: 'any maskable' }], shortcuts: TOOLS.slice(0, 4).map(t => ({ name: t.name, url: `/${t.slug}/` })) }, null, 1));
 
 // service worker: shell em cache, o resto sob demanda
 const shell = ['/', '/css/style.css', '/js/app.js', '/js/lib.js', '/js/registry.js', '/fonts/vt323.woff2', '/fonts/ps2p.woff2', '/favicon.svg'];
