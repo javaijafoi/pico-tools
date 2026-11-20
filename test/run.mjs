@@ -14,7 +14,7 @@ const srv = http.createServer((q, r) => {
   if (!existsSync(f)) { r.writeHead(404); return r.end('nf'); }
   r.writeHead(200, { 'content-type': MIME[extname(f)] || 'application/octet-stream' }); r.end(readFileSync(f));
 }).listen(0);
-const BASE = `http://localhost:${srv.address().port}`;
+const BASE = process.env.BASE_URL || `http://localhost:${srv.address().port}`;
 
 const TMP = '/tmp/pico-tools-test'; mkdirSync(TMP, { recursive: true });
 async function mkPdf(name, pages, label) {
