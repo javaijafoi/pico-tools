@@ -38,26 +38,26 @@
   ],
   "redirects": [
     {
-      "source": "/:path*",
+      "source": "/(.*)",
       "has": [
         {
           "type": "host",
           "value": "pico-tools-javaijafoi.vercel.app"
         }
       ],
-      "destination": "https://multitool.javaijafoi.dev/:path*",
-      "permanent": true
+      "destination": "https://multitool.javaijafoi.dev/$1",
+      "statusCode": 301
     },
     {
-      "source": "/:path*",
+      "source": "/(.*)",
       "has": [
         {
           "type": "host",
           "value": "pico-tools-seven.vercel.app"
         }
       ],
-      "destination": "https://multitool.javaijafoi.dev/:path*",
-      "permanent": true
+      "destination": "https://multitool.javaijafoi.dev/$1",
+      "statusCode": 301
     }
   ]
 }
