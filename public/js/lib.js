@@ -73,6 +73,7 @@ export function fileList(files, onChange, { reorder = true } = {}) {
   const ul = h('ul', { class: 'files', id: 'filelist' });
   const draw = () => {
     ul.replaceChildren(...files.map((f, i) => h('li', null,
+      /^image\//.test(f.type) ? h('img', { src: f._url ??= URL.createObjectURL(f), alt: '', class: 'mini' }) : null,
       h('span', { class: 'n', text: f.name }), h('span', { class: 's', text: fmtBytes(f.size) }),
       reorder ? h('button', { type: 'button', 'aria-label': 'subir', onclick: () => { if (i > 0) { [files[i - 1], files[i]] = [files[i], files[i - 1]]; draw(); onChange?.(); } } }, '▲') : null,
       reorder ? h('button', { type: 'button', 'aria-label': 'descer', onclick: () => { if (i < files.length - 1) { [files[i + 1], files[i]] = [files[i], files[i + 1]]; draw(); onChange?.(); } } }, '▼') : null,
@@ -101,6 +102,14 @@ export async function loadPdfJs() {
   return m;
 }
 
+// Miniatura da 1ª página de um PDF (File/Blob). Devolve um <canvas> ou null se não der (PDF protegido, por exemplo).
+export async function pdfThumb(blob, width = 150) {
+  try {
+    const pj = await loadPdfJs(); const doc = await pj.getDocument({ data: new Uint8Array(await blob.arrayBuffer()) }).promise; const page = await doc.getPage(1);
+    const v1 = page.getViewport({ scale: 1 }); const vp = page.getViewport({ scale: width / v1.width }); const c = document.createElement('canvas'); c.width = Math.ceil(vp.width); c.height = Math.ceil(vp.height);
+    const ctx = c.getContext('2d'); ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, c.width, c.height); await page.render({ canvasContext: ctx, viewport: vp }).promise; doc.destroy(); c.className = 'thumb'; return c;
+  } catch { return null; }
+}
 export const readFile = f => f.arrayBuffer();
 export const loadImage = file => new Promise((res, rej) => {
   const url = URL.createObjectURL(file); const img = new Image();

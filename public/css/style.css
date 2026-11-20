@@ -119,3 +119,14 @@ footer a{color:var(--yellow)}
 .fav{position:fixed;left:12px;right:12px;bottom:max(12px,env(safe-area-inset-bottom));z-index:60;background:#000;border:3px solid var(--lime);padding:12px;max-width:520px;margin:0 auto}
 .fav p{margin:0 0 10px;font-size:22px;line-height:1.1}
 .fav-b{display:flex;gap:10px}.fav-b .btn{flex:1}
+
+.files li.res{flex-wrap:wrap}
+.files li .rh{display:flex;align-items:center;gap:8px;width:100%}
+.files li .mini{width:44px;height:44px;object-fit:cover;border:2px solid #000;flex:none}
+.cmp{display:flex;gap:8px;width:100%}
+.cmp figure{flex:1;min-width:0;margin:0;text-align:center;font-size:16px}
+.cmp figure img,.cmp figure canvas{display:block;width:100%;max-height:240px;object-fit:contain;border:2px solid #000;background:repeating-conic-gradient(#ccc 0 25%,#fff 0 50%) 0 0/16px 16px}
+.cmp figure canvas{width:auto;max-width:100%;margin:0 auto}
+.cmp figcaption{font-family:'Press Start 2P',monospace;font-size:8px;margin-top:4px;color:#555}
+.cmp.one figure{flex:0 1 160px}
+.note .cmp{margin-top:8px}
