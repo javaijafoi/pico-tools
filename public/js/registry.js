@@ -1,5 +1,5 @@
 // Catálogo das ferramentas. Sem dependência de DOM (o build.mjs também lê este arquivo).
-export const SITE = 'https://pico-tools.vercel.app';
+export const SITE = 'https://pico-tools-javaijafoi.vercel.app';
 export const CATS = {
   text: { name: 'TEXTO', color: '#29adff' },
   gen: { name: 'GERADORES', color: '#00e436' },
