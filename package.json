@@ -12,11 +12,13 @@
   },
   "license": "MIT",
   "devDependencies": {
+    "@ffmpeg/ffmpeg": "^0.12.10",
+    "@ffmpeg/util": "^0.12.1",
+    "@fontsource/press-start-2p": "*",
+    "@fontsource/vt323": "*",
+    "jszip": "^3.10.1",
     "pdf-lib": "^1.17.1",
     "pdfjs-dist": "4.10.38",
-    "qrcode-generator": "^2.0.4",
-    "jszip": "^3.10.1",
-    "@fontsource/press-start-2p": "*",
-    "@fontsource/vt323": "*"
+    "qrcode-generator": "^2.0.4"
   }
 }

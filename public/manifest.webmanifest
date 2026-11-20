@@ -1,7 +1,7 @@
 {
  "name": "Pico Multitool",
  "short_name": "Pico Multitool",
- "description": "41 ferramentas grátis que rodam no seu navegador: juntar e dividir PDF, comprimir imagem, gerar CPF e CNPJ, QR Code, contador de palavras e mais. Sem upload, funciona no celular.",
+ "description": "47 ferramentas grátis que rodam no seu navegador: remover fundo de imagem, comprimir imagem e vídeo, cortar vídeo e áudio, juntar e dividir PDF, QR Code e mais. Sem upload, funciona no celular.",
  "lang": "pt-BR",
  "start_url": "/",
  "scope": "/",
@@ -23,20 +23,20 @@
  ],
  "shortcuts": [
   {
-   "name": "Contador de palavras",
-   "url": "/contador-de-palavras/"
+   "name": "Remover fundo da imagem",
+   "url": "/remover-fundo/"
   },
   {
-   "name": "Inverter texto",
-   "url": "/inverter-texto/"
+   "name": "Converter imagem",
+   "url": "/converter-imagem/"
   },
   {
-   "name": "Maiúsculas e minúsculas",
-   "url": "/maiusculas-minusculas/"
+   "name": "Comprimir imagem",
+   "url": "/comprimir-imagem/"
   },
   {
-   "name": "Remover acentos e gerar slug",
-   "url": "/remover-acentos/"
+   "name": "Redimensionar imagem",
+   "url": "/redimensionar-imagem/"
   }
  ]
 }

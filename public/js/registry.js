@@ -1,10 +1,12 @@
 // Catálogo das ferramentas. Sem dependência de DOM (o build.mjs também lê este arquivo).
 export const SITE = 'https://pico-tools-javaijafoi.vercel.app';
 export const CATS = {
+  img: { name: 'IMAGEM', color: '#ff77a8' },
+  vid: { name: 'VÍDEO', color: '#83769c' },
+  aud: { name: 'ÁUDIO', color: '#00b543' },
+  pdf: { name: 'PDF', color: '#ff004d' },
   text: { name: 'TEXTO', color: '#29adff' },
   gen: { name: 'GERADORES', color: '#00e436' },
-  img: { name: 'IMAGEM', color: '#ff77a8' },
-  pdf: { name: 'PDF', color: '#ff004d' },
   calc: { name: 'CALCULADORAS', color: '#ffec27' },
   dev: { name: 'DEV', color: '#ffa300' },
 };
@@ -29,10 +31,17 @@ const T = [
   ['gerador-de-qr-code', 'gen', 'gen', '▦', 'Gerador de QR Code', 'Cria QR Code de texto, link ou Wi-Fi e baixa em PNG.', 'gerador de qr code qrcode link wifi png', 'Crie QR Codes para links, textos ou redes Wi-Fi e baixe como imagem PNG ou SVG, sem cadastro.'],
   ['gerador-de-dados-fake', 'gen', 'gen', '🎭', 'Gerador de dados fictícios', 'Pessoas fictícias com nome, CPF, e-mail, telefone e CEP.', 'dados fictícios gerador de pessoas fake nome email telefone cep para teste', 'Gere pessoas fictícias com nome, CPF, e-mail, telefone e endereço para popular bancos e testar sistemas.'],
 
+  ['remover-fundo', 'img', 'img', '✨', 'Remover fundo da imagem', 'Tira o fundo de fotos com IA, direto no seu aparelho.', 'remover fundo imagem tirar fundo foto png transparente bg remover recortar pessoa produto', 'Remova o fundo de qualquer foto com inteligência artificial que roda no seu navegador e baixe em PNG transparente, ou troque por uma cor. A foto não é enviada para nenhum servidor.'],
   ['converter-imagem', 'img', 'img', '🖼️', 'Converter imagem', 'PNG, JPG e WebP: converta entre formatos.', 'converter imagem png jpg jpeg webp', 'Converta imagens entre PNG, JPG e WebP direto no navegador, sem enviar a foto para lugar nenhum.'],
   ['comprimir-imagem', 'img', 'img', '🗜️', 'Comprimir imagem', 'Reduz o peso da foto escolhendo a qualidade.', 'comprimir imagem reduzir tamanho foto jpg png', 'Reduza o tamanho de fotos escolhendo a qualidade e vendo o resultado antes de baixar. Funciona offline.'],
   ['redimensionar-imagem', 'img', 'img', '📐', 'Redimensionar imagem', 'Muda largura e altura em pixels ou por porcentagem.', 'redimensionar imagem mudar tamanho pixels largura altura', 'Mude o tamanho de uma imagem em pixels ou porcentagem, mantendo a proporção.'],
   ['remover-metadados-imagem', 'img', 'img', '🕵️', 'Remover dados da foto (EXIF)', 'Apaga localização GPS e dados da câmera antes de compartilhar.', 'remover exif metadados foto localização gps privacidade', 'Apague a localização, o modelo do celular e outros metadados escondidos de uma foto antes de compartilhar.'],
+
+  ['comprimir-video', 'media', 'vid', '🎞️', 'Comprimir vídeo', 'Diminui o peso do vídeo sem enviar para lugar nenhum.', 'comprimir vídeo reduzir tamanho vídeo diminuir mp4 whatsapp', 'Reduza o tamanho de vídeos escolhendo qualidade e resolução. Todo o processamento acontece no seu aparelho, sem upload.'],
+  ['cortar-video', 'media', 'vid', '✂️', 'Cortar vídeo', 'Corta um trecho do vídeo pelo início e pelo fim.', 'cortar vídeo fatiar vídeo trim recortar trecho mp4', 'Corte um trecho de um vídeo informando o início e o fim, no modo rápido (sem recodificar) ou no modo preciso. Sem upload.'],
+  ['video-para-gif', 'media', 'vid', '🎬', 'Vídeo para GIF', 'Transforma um trecho de vídeo em GIF animado.', 'vídeo para gif converter vídeo em gif criar gif', 'Transforme um trecho do vídeo em um GIF animado, escolhendo largura e fluidez, tudo no seu aparelho.'],
+  ['extrair-audio', 'media', 'vid', '🎧', 'Extrair áudio do vídeo', 'Tira o áudio de um vídeo em MP3, WAV ou M4A.', 'extrair áudio do vídeo vídeo para mp3 converter vídeo em áudio', 'Extraia a trilha de áudio de qualquer vídeo e salve em MP3, WAV ou M4A, sem enviar o arquivo para servidor nenhum.'],
+  ['cortar-audio', 'media', 'aud', '🎵', 'Cortar áudio', 'Corta um trecho de áudio e salva em MP3, WAV ou M4A.', 'cortar áudio fatiar áudio trim mp3 recortar música toque', 'Corte um trecho de um áudio (música, gravação, podcast) informando o início e o fim e baixe em MP3, WAV ou M4A.'],
 
   ['juntar-pdf', 'pdf', 'pdf', '🧲', 'Juntar PDF', 'Une vários PDFs em um só, na ordem que você quiser.', 'juntar pdf unir pdf mesclar merge', 'Una vários arquivos PDF em um único documento. Tudo acontece no seu aparelho, sem upload.'],
   ['dividir-pdf', 'pdf', 'pdf', '✂️', 'Dividir PDF', 'Divide por intervalo, por páginas ou em partes iguais.', 'dividir pdf separar páginas split cortar pdf', 'Divida um PDF em partes: por intervalos de páginas, a cada N páginas ou uma página por arquivo, com download em ZIP.'],
@@ -59,5 +68,6 @@ const T = [
   ['testador-regex', 'dev', 'dev', '🔍', 'Testador de Regex', 'Teste expressões regulares com destaque ao vivo.', 'testador de regex expressão regular regexp teste', 'Teste expressões regulares com destaque dos resultados, grupos de captura e substituição.'],
 ];
 
-export const TOOLS = T.map(([slug, group, cat, icon, name, desc, kw, seo]) => ({ slug, group, cat, icon, name, desc, kw, seo }));
+const RANK = Object.keys(CATS);
+export const TOOLS = T.map(([slug, group, cat, icon, name, desc, kw, seo]) => ({ slug, group, cat, icon, name, desc, kw, seo })).sort((a, b) => RANK.indexOf(a.cat) - RANK.indexOf(b.cat));
 export const bySlug = Object.fromEntries(TOOLS.map(t => [t.slug, t]));

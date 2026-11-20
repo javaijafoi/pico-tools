@@ -116,4 +116,25 @@ export const tools = {
     });
     root.append(h('p', { class: 'note', style: 'color:var(--lgray)', text: 'Dica: confira no seu celular (detalhes da foto) que a localização sumiu. Se você enviar a foto por apps como WhatsApp, eles já removem boa parte desses dados, mas outros canais não.' }));
   },
+
+  // Remove o fundo com um modelo de IA que roda no aparelho (baixa ~40 MB uma vez e fica em cache).
+  'remover-fundo'(root) {
+    const bg = select([['none', 'Transparente (PNG)'], ['#ffffff', 'Branco'], ['#000000', 'Preto'], ['custom', 'Outra cor…']], { id: 'bg' });
+    const col = h('input', { type: 'color', id: 'col', value: '#00e436', hidden: true });
+    bg.addEventListener('change', () => { col.hidden = bg.value !== 'custom'; });
+    let lib;
+    batch(root, {
+      title: 'FOTOS', hint: 'pessoas, produtos, animais… ou arraste aqui', options: [field('Fundo', bg), col],
+      process: async (img, f) => {
+        lib ??= await import('https://cdn.jsdelivr.net/npm/@imgly/background-removal@1.5.5/+esm');
+        const cut = await lib.removeBackground(f, { model: 'isnet_fp16', output: { format: 'image/png' } });
+        const fill = bg.value === 'custom' ? col.value : bg.value;
+        if (fill === 'none') return { blob: cut, name: baseName(f.name) + '-sem-fundo.png' };
+        const im = await loadImage(cut); const c = drawTo(im, im.naturalWidth, im.naturalHeight);
+        const ctx = c.getContext('2d'); ctx.globalCompositeOperation = 'destination-over'; ctx.fillStyle = fill; ctx.fillRect(0, 0, c.width, c.height);
+        return { blob: await canvasBlob(c, 'image/png'), name: baseName(f.name) + '-sem-fundo.png' };
+      },
+    });
+    root.append(h('p', { class: 'note', style: 'color:var(--lgray)', text: 'Na primeira vez o modelo de IA (~40 MB) é baixado e guardado no aparelho. A foto em si nunca sai daqui.' }));
+  },
 };

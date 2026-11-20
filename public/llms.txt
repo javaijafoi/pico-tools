@@ -1,6 +1,32 @@
 # Pico Multitool
 
-> 41 ferramentas gratuitas em português que rodam inteiras no navegador (PDF, imagem, texto, geradores, calculadoras e utilidades de desenvolvedor). Nada é enviado a servidores. Feito por Peter Mac (javaijafoi), em estilo PICO-8. Código aberto (MIT): https://github.com/javaijafoi/pico-tools
+> 47 ferramentas gratuitas em português que rodam inteiras no navegador (PDF, imagem, texto, geradores, calculadoras e utilidades de desenvolvedor). Nada é enviado a servidores. Feito por Peter Mac (javaijafoi), em estilo PICO-8. Código aberto (MIT): https://github.com/javaijafoi/pico-tools
+
+## IMAGEM
+- [Remover fundo da imagem](https://pico-tools-javaijafoi.vercel.app/remover-fundo/): Tira o fundo de fotos com IA, direto no seu aparelho.
+- [Converter imagem](https://pico-tools-javaijafoi.vercel.app/converter-imagem/): PNG, JPG e WebP: converta entre formatos.
+- [Comprimir imagem](https://pico-tools-javaijafoi.vercel.app/comprimir-imagem/): Reduz o peso da foto escolhendo a qualidade.
+- [Redimensionar imagem](https://pico-tools-javaijafoi.vercel.app/redimensionar-imagem/): Muda largura e altura em pixels ou por porcentagem.
+- [Remover dados da foto (EXIF)](https://pico-tools-javaijafoi.vercel.app/remover-metadados-imagem/): Apaga localização GPS e dados da câmera antes de compartilhar.
+
+## VÍDEO
+- [Comprimir vídeo](https://pico-tools-javaijafoi.vercel.app/comprimir-video/): Diminui o peso do vídeo sem enviar para lugar nenhum.
+- [Cortar vídeo](https://pico-tools-javaijafoi.vercel.app/cortar-video/): Corta um trecho do vídeo pelo início e pelo fim.
+- [Vídeo para GIF](https://pico-tools-javaijafoi.vercel.app/video-para-gif/): Transforma um trecho de vídeo em GIF animado.
+- [Extrair áudio do vídeo](https://pico-tools-javaijafoi.vercel.app/extrair-audio/): Tira o áudio de um vídeo em MP3, WAV ou M4A.
+
+## ÁUDIO
+- [Cortar áudio](https://pico-tools-javaijafoi.vercel.app/cortar-audio/): Corta um trecho de áudio e salva em MP3, WAV ou M4A.
+
+## PDF
+- [Juntar PDF](https://pico-tools-javaijafoi.vercel.app/juntar-pdf/): Une vários PDFs em um só, na ordem que você quiser.
+- [Dividir PDF](https://pico-tools-javaijafoi.vercel.app/dividir-pdf/): Divide por intervalo, por páginas ou em partes iguais.
+- [Girar PDF](https://pico-tools-javaijafoi.vercel.app/girar-pdf/): Gira todas as páginas ou só as que escolher.
+- [Comprimir PDF](https://pico-tools-javaijafoi.vercel.app/comprimir-pdf/): Reduz o tamanho do PDF e abre até arquivos protegidos.
+- [Imagem para PDF](https://pico-tools-javaijafoi.vercel.app/imagem-para-pdf/): Transforma fotos e imagens em um PDF só.
+- [PDF para imagem](https://pico-tools-javaijafoi.vercel.app/pdf-para-imagem/): Converte cada página do PDF em PNG ou JPG.
+- [Extrair e reordenar páginas](https://pico-tools-javaijafoi.vercel.app/extrair-paginas-pdf/): Pega só as páginas que quiser, na ordem que quiser.
+- [Numerar páginas e marca d’água](https://pico-tools-javaijafoi.vercel.app/numerar-paginas-pdf/): Coloca número de página ou texto de marca d’água no PDF.
 
 ## TEXTO
 - [Contador de palavras](https://pico-tools-javaijafoi.vercel.app/contador-de-palavras/): Palavras, caracteres, frases e tempo de leitura.
@@ -21,22 +47,6 @@
 - [Sorteador](https://pico-tools-javaijafoi.vercel.app/sorteador/): Sorteia nomes, números, times, cara ou coroa e dados.
 - [Gerador de QR Code](https://pico-tools-javaijafoi.vercel.app/gerador-de-qr-code/): Cria QR Code de texto, link ou Wi-Fi e baixa em PNG.
 - [Gerador de dados fictícios](https://pico-tools-javaijafoi.vercel.app/gerador-de-dados-fake/): Pessoas fictícias com nome, CPF, e-mail, telefone e CEP.
-
-## IMAGEM
-- [Converter imagem](https://pico-tools-javaijafoi.vercel.app/converter-imagem/): PNG, JPG e WebP: converta entre formatos.
-- [Comprimir imagem](https://pico-tools-javaijafoi.vercel.app/comprimir-imagem/): Reduz o peso da foto escolhendo a qualidade.
-- [Redimensionar imagem](https://pico-tools-javaijafoi.vercel.app/redimensionar-imagem/): Muda largura e altura em pixels ou por porcentagem.
-- [Remover dados da foto (EXIF)](https://pico-tools-javaijafoi.vercel.app/remover-metadados-imagem/): Apaga localização GPS e dados da câmera antes de compartilhar.
-
-## PDF
-- [Juntar PDF](https://pico-tools-javaijafoi.vercel.app/juntar-pdf/): Une vários PDFs em um só, na ordem que você quiser.
-- [Dividir PDF](https://pico-tools-javaijafoi.vercel.app/dividir-pdf/): Divide por intervalo, por páginas ou em partes iguais.
-- [Girar PDF](https://pico-tools-javaijafoi.vercel.app/girar-pdf/): Gira todas as páginas ou só as que escolher.
-- [Comprimir PDF](https://pico-tools-javaijafoi.vercel.app/comprimir-pdf/): Reduz o tamanho do PDF e abre até arquivos protegidos.
-- [Imagem para PDF](https://pico-tools-javaijafoi.vercel.app/imagem-para-pdf/): Transforma fotos e imagens em um PDF só.
-- [PDF para imagem](https://pico-tools-javaijafoi.vercel.app/pdf-para-imagem/): Converte cada página do PDF em PNG ou JPG.
-- [Extrair e reordenar páginas](https://pico-tools-javaijafoi.vercel.app/extrair-paginas-pdf/): Pega só as páginas que quiser, na ordem que quiser.
-- [Numerar páginas e marca d’água](https://pico-tools-javaijafoi.vercel.app/numerar-paginas-pdf/): Coloca número de página ou texto de marca d’água no PDF.
 
 ## CALCULADORAS
 - [Calculadora de IMC](https://pico-tools-javaijafoi.vercel.app/calculadora-imc/): Índice de massa corporal e faixa de peso.
