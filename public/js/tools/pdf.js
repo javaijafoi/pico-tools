@@ -157,7 +157,14 @@ export const tools = {
         }
         canvas.width = canvas.height = 1; doc.destroy();
         const bytes = await out.save();
-        outp.add(pdfBlob(bytes), baseName(file.name) + '-comprimido.pdf', bytes.length < file.size ? `-${Math.round((1 - bytes.length / file.size) * 100)}%` : 'ficou maior: tente qualidade/resolução menor');
+        if (bytes.length < file.size) { outp.add(pdfBlob(bytes), baseName(file.name) + '-comprimido.pdf', `-${Math.round((1 - bytes.length / file.size) * 100)}%`); return; }
+        // Virar imagem só piora PDFs de texto: nesse caso entrega a versão leve (se ganhar algo) ou o próprio arquivo.
+        try {
+          const d = await PDFLib.PDFDocument.load(buf); d.setTitle(''); d.setAuthor(''); d.setProducer(''); d.setCreator('');
+          const lb = await d.save({ useObjectStreams: true });
+          if (lb.length < file.size) { outp.add(pdfBlob(lb), baseName(file.name) + '-leve.pdf', `-${Math.round((1 - lb.length / file.size) * 100)}% · já era leve, mantive o texto`); return; }
+        } catch {}
+        outp.add(file, file.name, 'já estava leve: sem ganho, mantive o original');
       },
     });
   },
