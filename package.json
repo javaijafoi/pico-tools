@@ -1,0 +1,22 @@
+{
+  "name": "pico-tools",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Ferramentas que rodam no navegador, estilo PICO-8",
+  "scripts": {
+    "build": "node build.mjs",
+    "vendor": "bash scripts/vendor.sh",
+    "serve": "npx --yes serve public -l 4173",
+    "test": "node test/run.mjs"
+  },
+  "license": "MIT",
+  "devDependencies": {
+    "pdf-lib": "^1.17.1",
+    "pdfjs-dist": "4.10.38",
+    "qrcode-generator": "^2.0.4",
+    "jszip": "^3.10.1",
+    "@fontsource/press-start-2p": "*",
+    "@fontsource/vt323": "*"
+  }
+}
