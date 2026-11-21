@@ -1,5 +1,6 @@
 import { bySlug } from './registry.js';
 import { h, toast } from './lib.js';
+import { aviso, painel } from './modulos.js';
 
 const norm = s => s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
 
@@ -26,6 +27,7 @@ function home() {
   }));
   apply();
   pedido();
+  const mb = document.getElementById('modBox'); if (mb) painel(mb);
 }
 
 // "Peça sua tool": grava o pedido por uma função do Supabase que só aceita inserir (ninguém lê daqui).
@@ -62,6 +64,7 @@ async function tool(slug) {
     const mod = await import(`./tools/${meta.group}.js`);
     root.replaceChildren();
     await mod.tools[slug](root, meta);
+    root.prepend(aviso(slug));
   } catch (e) {
     console.error(e);
     root.replaceChildren(h('div', { class: 'panel' }, h('h2', { text: 'ERRO' }), 'Não consegui carregar esta ferramenta: ' + e.message));

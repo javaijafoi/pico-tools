@@ -126,12 +126,17 @@ export function shuffle(arr) { const a = [...arr]; for (let i = a.length - 1; i 
 // público e fica em cache. O arquivo do usuário nunca sai do aparelho.
 const FF_CORE = 'https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.6/dist/umd/';
 let ffPromise;
-async function blobUrl(url, type) { const r = await fetch(url); if (!r.ok) throw new Error('Falha ao baixar o motor de vídeo'); return URL.createObjectURL(new Blob([await r.arrayBuffer()], { type })); }
+async function blobUrl(url, type) {
+  const cache = await caches.open('pico-modelos').catch(() => null); let r = await cache?.match(url);
+  if (!r) { const net = await fetch(url); if (!net.ok) throw new Error('Falha ao baixar o motor de vídeo'); try { await cache?.put(url, net.clone()); } catch {} r = net; }
+  return URL.createObjectURL(new Blob([await r.arrayBuffer()], { type }));
+}
 export function loadFFmpeg(onStep) {
   return ffPromise ??= (async () => {
+    const M = await import('./modulos.js'); if (!await M.garantir('video')) throw M.recusou();
     await loadScript(ROOT + 'vendor/ffmpeg.js');
     const ff = new window.FFmpegWASM.FFmpeg();
-    onStep?.('Baixando o motor de vídeo (só na primeira vez, ~30 MB)…');
+    onStep?.('Baixando o motor de vídeo (só na primeira vez, ~9 MB)…');
     const [coreURL, wasmURL] = await Promise.all([blobUrl(FF_CORE + 'ffmpeg-core.js', 'text/javascript'), blobUrl(FF_CORE + 'ffmpeg-core.wasm', 'application/wasm')]);
     await ff.load({ coreURL, wasmURL });
     return ff;

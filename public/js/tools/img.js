@@ -176,6 +176,8 @@ export const tools = {
         let per = states.get(f); if (!per) states.set(f, per = {});
         let st = per[modo.value];
         if (!st) {
+          const M = await import('../modulos.js'); const mid = modo.value === 'anime' ? 'ia-anime' : modo.value === 'foto-max' ? 'ia-foto-max' : 'ia-foto';
+          if (!await M.garantir(mid)) throw M.recusou();
           const orig = cvs(img.naturalWidth, img.naturalHeight); orig.getContext('2d').drawImage(img, 0, 0);
           const mask = modo.value === 'anime' ? await animeMask(orig) : await photoMask(f, orig, modo.value === 'foto-max' ? 'isnet' : 'isnet_fp16');
           st = per[modo.value] = { orig, mask, file: f }; say('');
@@ -185,7 +187,7 @@ export const tools = {
         return { blob: await canvasBlob(c, 'image/png'), name: baseName(f.name) + '-sem-fundo.png' };
       },
     });
-    root.insertBefore(panel('MODELO DE IA', msg, h('p', { class: 'note', style: 'color:#444', text: 'Dica: para desenhos, anime e arte digital use "Ilustração / anime" (baixa ~170 MB na primeira vez; melhor no PC). Para fotos use "Foto" (~40 MB) ou "máxima qualidade" (~170 MB). Os modelos ficam guardados no aparelho e a imagem nunca sai daqui.' })), root.children[1]);
+    root.insertBefore(panel('MODELO DE IA', msg, h('p', { class: 'note', style: 'color:#444', text: 'Você escolhe o que baixar, uma vez só: Foto (rápido) ~100 MB, Foto (máxima qualidade) ~188 MB, Ilustração / anime ~178 MB (melhor no PC). Para desenhos, anime e arte digital use "Ilustração / anime". Depois fica guardado no aparelho e a imagem nunca sai daqui.' })), root.children[1]);
 
     // ---- Retoque com pincel ----
     const pick = select([], { id: 'rsel' }), mode = select([['add', 'Restaurar (traz de volta)'], ['del', 'Apagar (tira)']], { id: 'rmode' });

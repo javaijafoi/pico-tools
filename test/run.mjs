@@ -26,7 +26,7 @@ const A = await mkPdf('a.pdf', 5, 'A'), B = await mkPdf('b.pdf', 3, 'B');
 
 const browser = await chromium.launch();
 const ctx = await browser.newContext({ viewport: { width: 390, height: 844 }, acceptDownloads: true, hasTouch: true });
-await ctx.addInitScript(() => { try { localStorage.setItem('fav-aviso', String(Date.now())); } catch {} });
+await ctx.addInitScript(() => { try { localStorage.setItem('fav-aviso', String(Date.now())); localStorage.setItem('modulos-ok', JSON.stringify({ video: 1, ocr: 1, 'ia-foto': 1, 'ia-foto-max': 1, 'ia-anime': 1 })); } catch {} });
 let pass = 0, fail = 0; const fails = [];
 const only = process.argv[2];
 const PER = 150000;
@@ -186,6 +186,24 @@ await test('pdf-para-texto', async p => { const img = await mkTextImg(p, 'texto2
   try { await p.goto(BASE + '/'); await p.waitForSelector('.fav', { timeout: 8000 }); has(await txt(p, '.fav'), 'favoritos'); await p.click('#favNao'); eq(await p.$$eval('.fav', l => l.length), 0);
     await p.reload(); await p.waitForTimeout(4600); eq(await p.$$eval('.fav', l => l.length), 0); pass++; console.log('✔ convite favoritos'); }
   catch (e) { fail++; fails.push('favoritos'); console.log('✘ favoritos →', e.message); } await c2.close(); }
+
+// ---------- aviso e escolha de download por módulo ----------
+{ const c3 = await browser.newContext({ viewport: { width: 390, height: 844 }, hasTouch: true, acceptDownloads: true });
+  await c3.addInitScript(() => { try { localStorage.setItem('fav-aviso', String(Date.now())); } catch {} });
+  const p = await c3.newPage(); const errs = []; p.on('pageerror', e => errs.push(e.message));
+  try {
+    await p.goto(BASE + '/contador-de-palavras/'); await p.waitForSelector('#runlocal'); has(await txt(p, '#runlocal'), '100% no seu aparelho');
+    await p.goto(BASE + '/comprimir-video/'); await p.waitForSelector('#runlocal'); has(await txt(p, '#runlocal'), '9,3 MB'); has(await txt(p, '#runlocal'), 'ainda não baixado');
+    await p.setInputFiles('#file', MP4); await p.waitForFunction(() => /\d:\d\d/.test(document.getElementById('info').textContent)); await p.click('#goBtn');
+    await p.waitForSelector('.modal'); has(await txt(p, '.modal'), '9,3 MB'); has(await txt(p, '.modal'), 'não são enviados');
+    await p.click('#modNao'); await p.waitForSelector('#status:has-text("Download cancelado")'); eq(await p.evaluate(() => localStorage.getItem('modulos-ok')), null);
+    await p.goto(BASE + '/remover-fundo/'); await p.waitForSelector('#runlocal'); const t = await txt(p, '#runlocal'); has(t, '100 MB'); has(t, '188 MB'); has(t, '178 MB');
+    await p.evaluate(() => localStorage.setItem('modulos-ok', JSON.stringify({ video: 1 })));
+    await p.goto(BASE + '/'); await p.waitForSelector('#modBox li'); eq(await p.$$eval('#modBox li', l => l.length), 5); eq(await p.$$eval('#modBox [data-rm]', l => l.length), 1);
+    await p.click('[data-rm=video]'); await p.waitForFunction(() => !document.querySelector('[data-rm]')); eq(await p.evaluate(() => localStorage.getItem('modulos-ok')), '{}');
+    const ov = await p.evaluate(() => document.documentElement.scrollWidth - innerWidth); if (ov > 2) throw new Error('overflow ' + ov);
+    if (errs.length) throw new Error(errs.join('|')); pass++; console.log('✔ módulos (aviso, recusa, remoção)'); }
+  catch (e) { fail++; fails.push('modulos'); console.log('✘ modulos →', e.message.split('\n')[0]); try { await p.screenshot({ path: TMP + '/fail-modulos.png', fullPage: true }); } catch {} } await c3.close(); }
 
 await browser.close(); srv.close();
 console.log(`\n${pass} ok, ${fail} falhas${fails.length ? ': ' + fails.join(', ') : ''}`);

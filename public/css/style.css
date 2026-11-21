@@ -130,3 +130,13 @@ footer a{color:var(--yellow)}
 .cmp figcaption{font-family:'Press Start 2P',monospace;font-size:8px;margin-top:4px;color:#555}
 .cmp.one figure{flex:0 1 160px}
 .note .cmp{margin-top:8px}
+
+.runlocal{font-size:20px;color:var(--lgray);margin-bottom:14px;line-height:1.2}
+.runlocal a{color:var(--yellow)}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:100;display:flex;align-items:center;justify-content:center;padding:16px}
+.modal-b{background:var(--white);color:#000;max-width:480px;width:100%;padding:16px;max-height:92dvh;overflow:auto;box-shadow:inset -4px -4px 0 rgba(0,0,0,.25),inset 4px 4px 0 rgba(255,255,255,.5),0 5px 0 #000}
+.modal-b h2{font-family:'Press Start 2P',monospace;font-weight:400;font-size:11px;line-height:1.5;margin-bottom:12px;color:var(--navy)}
+.modal-b p{margin-bottom:10px}.modal-b .warn{color:var(--red)}.modal-b .note{color:#444;font-size:20px}
+.mods{list-style:none;display:flex;flex-direction:column;gap:10px;margin-bottom:8px}
+.mods li{display:flex;gap:10px;align-items:center;justify-content:space-between;border:3px solid #000;padding:8px 10px}
+.mods li>div{display:flex;flex-direction:column;gap:2px;min-width:0}.mods small{font-size:19px;color:#444}.mods small.ok{color:var(--green)}
