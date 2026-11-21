@@ -65,6 +65,7 @@ ${topbar}
 <label class="f"><span>Contato (opcional, se quiser aviso quando ficar pronta)</span><input type="text" id="pedCont" maxlength="100" placeholder="e-mail ou @usuario"></label>
 <div style="position:absolute;left:-9999px" aria-hidden="true"><label>Não preencha<input type="text" id="pedIsca" tabindex="-1" autocomplete="off"></label></div>
 <div class="row"><button type="submit" class="btn g" id="pedBtn">ENVIAR PEDIDO</button></div><div class="status" id="pedSt" role="status" aria-live="polite"></div></form></section>
+<section class="panel" id="modulos"><h2>MÓDULOS BAIXADOS</h2><p class="lead">Tudo roda no seu aparelho, mas algumas ferramentas (vídeo, OCR, remover fundo) precisam baixar um módulo uma vez. Aqui você vê o que já baixou e remove o que não quer guardar.</p><div id="modBox"></div></section>
 <section class="seo"><h2>COMO FUNCIONA</h2><p>Cada ferramenta roda dentro do navegador, com JavaScript. Seus arquivos e textos ficam no aparelho: não existe servidor recebendo PDFs, fotos ou senhas. Depois da primeira visita, as ferramentas continuam funcionando sem internet.</p></section>
 ${footer}
 </div><script type="module" src="/js/app.js"></script></body></html>
@@ -105,10 +106,14 @@ out('manifest.webmanifest', JSON.stringify({ name: 'Pico Multitool', short_name:
 const shell = ['/', '/css/style.css', '/js/app.js', '/js/lib.js', '/js/registry.js', '/fonts/vt323.woff2', '/fonts/ps2p.woff2', '/favicon.svg'];
 out('sw.js', `// gerado por build.mjs
 const V = 'pico-tools-${BUILD}';
+// Motores e modelos (CDN) ficam no cache 'pico-modelos', que sobrevive às novas versões do site.
+const MOD = /^https:\\/\\/(staticimgly\\.com\\/|cdn\\.jsdelivr\\.net\\/(npm\\/(@ffmpeg\\/core|@imgly|onnxruntime-web|tesseract\\.js-core)|gh\\/naptha\\/tessdata))/;
 self.addEventListener('install', e => { e.waitUntil(caches.open(V).then(c => c.addAll(${JSON.stringify(shell)})).then(() => self.skipWaiting())); });
-self.addEventListener('activate', e => { e.waitUntil(caches.keys().then(ks => Promise.all(ks.filter(k => k !== V).map(k => caches.delete(k)))).then(() => self.clients.claim())); });
+self.addEventListener('activate', e => { e.waitUntil(caches.keys().then(ks => Promise.all(ks.filter(k => k !== V && k !== 'pico-modelos').map(k => caches.delete(k)))).then(() => self.clients.claim())); });
 self.addEventListener('fetch', e => {
-  const r = e.request; if (r.method !== 'GET' || new URL(r.url).origin !== location.origin) return;
+  const r = e.request;
+  if (r.method === 'GET' && MOD.test(r.url) && !r.headers.has('range')) { e.respondWith(caches.open('pico-modelos').then(async c => { const hit = await c.match(r.url); if (hit) return hit; const res = await fetch(r); if (res.status === 200) c.put(r.url, res.clone()).catch(() => {}); return res; })); return; }
+  if (r.method !== 'GET' || new URL(r.url).origin !== location.origin) return;
   e.respondWith(caches.open(V).then(async c => {
     const hit = await c.match(r);
     const net = fetch(r).then(res => { if (res.ok) c.put(r, res.clone()); return res; }).catch(() => hit);

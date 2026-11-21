@@ -85,9 +85,9 @@ Sites de ferramentas (juntar PDF, gerar CPF, QR Code…) costumam mandar seus ar
 
 - Site estático (HTML + JS puro, sem framework). Cada ferramenta tem sua página, gerada por `build.mjs` a partir de `public/js/registry.js`.
 - PDF: [pdf-lib](https://pdf-lib.js.org/) (juntar, dividir, girar, numerar) e [pdf.js](https://mozilla.github.io/pdf.js/) (renderizar, comprimir, PDF para imagem). Ambas MIT/Apache, sem AGPL.
-- Vídeo e áudio: [ffmpeg.wasm](https://ffmpegwasm.netlify.app/) (MIT; o núcleo de ~30 MB baixa de um CDN público na primeira vez e fica em cache). Remover fundo (modo ilustração/anime): [anime-segmentation](https://github.com/SkyTNT/anime-segmentation) (modelo Apache-2.0 do Hugging Face, ~170 MB, roda com [onnxruntime-web](https://onnxruntime.ai/)). Remover fundo (fotos): [@imgly/background-removal](https://github.com/imgly/background-removal-js) (licença AGPL-3.0, carregado de um CDN em tempo de execução; o modelo de ~40 MB roda no aparelho). Nenhum arquivo do usuário é enviado.
+- Vídeo e áudio: [ffmpeg.wasm](https://ffmpegwasm.netlify.app/) (MIT; o núcleo (~9 MB de download, ~31 MB no aparelho) baixa de um CDN público na primeira vez e fica em cache). Remover fundo (modo ilustração/anime): [anime-segmentation](https://github.com/SkyTNT/anime-segmentation) (modelo Apache-2.0 do Hugging Face, ~170 MB, roda com [onnxruntime-web](https://onnxruntime.ai/)). Remover fundo (fotos): [@imgly/background-removal](https://github.com/imgly/background-removal-js) (licença AGPL-3.0, carregado de um CDN em tempo de execução; o modelo de ~40 MB roda no aparelho). Nenhum arquivo do usuário é enviado.
 - "Peça sua tool": o formulário chama uma função do Supabase que só insere (texto de 5 a 500 caracteres, campo-isca, limite por hora e por dia, pedidos repetidos ignorados). Ninguém consegue ler os pedidos pelo site.
-- OCR: [Tesseract.js](https://github.com/naptha/tesseract.js) (Apache-2.0); o motor e o idioma (~6 MB) baixam de um CDN público na primeira vez e ficam em cache.
+- OCR: [Tesseract.js](https://github.com/naptha/tesseract.js) (Apache-2.0); o motor e o idioma (~4 a 5 MB) baixam de um CDN público na primeira vez e ficam em cache.
 - QR Code: [qrcode-generator](https://github.com/kazuhikoarase/qrcode-generator). ZIP: [JSZip](https://stuk.github.io/jszip/).
 - Aleatoriedade com `crypto.getRandomValues`. Hashes com `crypto.subtle`.
 - Limitações honestas: PDFs com proteção de edição não abrem nas ferramentas que usam pdf-lib (use "Comprimir PDF", que passa por pdf.js); "Comprimir PDF" no modo máximo transforma páginas em imagem.
@@ -115,3 +115,7 @@ MIT. Feito por [Peter Mac (javaijafoi)](https://javaijafoi.dev).
 | Portfólio | [javaijafoi.vercel.app](https://javaijafoi.dev) | [javaijafoi/fantasy-portfolio](https://github.com/javaijafoi/fantasy-portfolio) |
 | Rolador de dados | [rolador-javaijafoi.vercel.app](https://rolador-javaijafoi.vercel.app) | [javaijafoi/rolador](https://github.com/javaijafoi/rolador) |
 | Arena de Arton | [arena-de-arton.vercel.app](https://arena-de-arton.vercel.app) | [javaijafoi/arena-de-arton](https://github.com/javaijafoi/arena-de-arton) |
+
+## Módulos baixados
+
+Ferramentas que precisam de motor ou modelo (vídeo/áudio, OCR, remover fundo) pedem confirmação antes do primeiro download, mostrando o tamanho real, e lembram a escolha (`public/js/modulos.js`). A página inicial tem o painel "Módulos baixados" para remover o que foi guardado (cache `pico-modelos`, que o service worker preserva entre versões).

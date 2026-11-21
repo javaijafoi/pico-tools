@@ -1,6 +1,6 @@
 import { h, panel, row, field, btn, select, area, fmtBytes, baseName, download, textBlob, copyBtn, dropzone, status, setStatus, progress, loadScript, loadPdfJs, canvasBlob, sleep } from '../lib.js';
 
-// OCR com Tesseract (WebAssembly). O motor e o idioma (~6 MB no total) baixam de um CDN público na primeira vez
+// OCR com Tesseract (WebAssembly). O motor e o idioma (~4 a 5 MB no total) baixam de um CDN público na primeira vez
 // e ficam em cache; a imagem ou o PDF nunca saem do aparelho.
 const CDN = 'https://cdn.jsdelivr.net/';
 let tess;
@@ -19,13 +19,15 @@ function ui(root, { title, accept, label, hint, run }) {
     if (!file) return setStatus(st, 'Escolha um arquivo primeiro.', 'bad');
     go.disabled = true; out.value = ''; prog.set(0);
     try {
-      setStatus(st, 'Preparando o leitor de texto (só na primeira vez baixa uns 6 MB)…');
+      const M = await import('../modulos.js'); const mb = 1.4 + 0.04 + lang.value.split('+').reduce((a, l) => a + ({ por: 1.0, eng: 2.0, spa: 1.1 }[l] || 1.5), 0);
+      if (!await M.garantir('ocr', { mb: Math.round(mb * 10) / 10 })) throw M.recusou();
+      setStatus(st, 'Preparando o leitor de texto (só na primeira vez baixa uns ' + Math.round(mb) + ' MB)…');
       const w = await worker(lang.value, m => { if (m.status === 'recognizing text') prog.set(m.progress); });
       setStatus(st, 'Lendo…');
       const text = await run(file, w, (msg, p) => { setStatus(st, msg); if (p != null) prog.set(p); });
       await w.terminate(); out.value = text.trim(); prog.hide();
       setStatus(st, out.value ? `Pronto! ${out.value.split(/\s+/).length} palavras.` : 'Não encontrei texto nesse arquivo.', out.value ? 'ok' : 'bad');
-    } catch (e) { prog.hide(); setStatus(st, 'Erro: ' + e.message, 'bad'); }
+    } catch (e) { prog.hide(); setStatus(st, e.recusa ? e.message : 'Erro: ' + e.message, 'bad'); }
     go.disabled = false;
   }, 'g', { id: 'goBtn' });
   const info = h('div', { class: 'status', id: 'info' });

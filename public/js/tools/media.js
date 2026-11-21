@@ -39,7 +39,7 @@ function job(root, { kind, title, options = [], run, trim = false, hint }) {
       const out = h(kind === 'audio' || /^audio/.test(mime) ? 'audio' : /^image/.test(mime) ? 'img' : 'video', { src: url, controls: true, style: 'width:100%;max-height:260px;margin-top:8px' });
       result.replaceChildren(out, h('ul', { class: 'files' }, h('li', null, h('span', { class: 'n', text: name }), h('span', { class: 's', text: `${fmtBytes(file.size)} → ${fmtBytes(blob.size)}` }), h('button', { type: 'button', id: 'dl', onclick: () => download(blob, name) }, '⬇'))));
       prog.hide(); setStatus(st, 'Pronto! Baixe abaixo.', 'ok');
-    } catch (e) { prog.hide(); setStatus(st, 'Erro: ' + e.message, 'bad'); }
+    } catch (e) { prog.hide(); setStatus(st, e.recusa ? e.message : 'Erro: ' + e.message, 'bad'); }
     goBtn.disabled = false;
   }, 'g', { id: 'goBtn' });
   const pick = f => {
