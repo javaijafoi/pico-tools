@@ -23,23 +23,30 @@ export const baixado = id => !!lerOk()[id];
 const mbTxt = mb => (mb < 10 ? mb.toFixed(1) : Math.round(mb)).toString().replace('.', ',') + ' MB';
 export const tamanho = id => mbTxt(MODULOS[id].mb);
 
-// Pede permissão antes do primeiro download. Devolve true se pode baixar.
+// Conexão móvel ou lenta? Só nesse caso perguntamos antes de baixar. No Wi-Fi (ou quando o navegador
+// não informa o tipo de conexão) baixa direto, sem pergunta e sem destaque.
+export function lenta() {
+  const c = navigator.connection; if (!c) return false;
+  return !!(c.saveData || c.type === 'cellular' || /^(slow-2g|2g|3g)$/.test(c.effectiveType || ''));
+}
+const marca = id => { const o = lerOk(); o[id] = Date.now(); gravaOk(o); try { navigator.storage?.persist?.(); } catch {} };
+
+// Antes do primeiro download. Devolve true se pode baixar.
 const nao = {};
 export function garantir(id, { mb } = {}) {
   const m = MODULOS[id]; if (baixado(id)) return Promise.resolve(true);
+  if (!lenta()) { marca(id); return Promise.resolve(true); }
   if (Date.now() - (nao[id] || 0) < 15000) return Promise.resolve(false); // não repete a pergunta para os outros arquivos do lote
   return new Promise(res => {
     const size = mb ?? m.mb;
-    const cel = navigator.connection && (navigator.connection.type === 'cellular' || navigator.connection.saveData);
-    const fim = ok => { ov.remove(); document.removeEventListener('keydown', esc); if (ok) { const o = lerOk(); o[id] = Date.now(); gravaOk(o); try { navigator.storage?.persist?.(); } catch {} } if (!ok) nao[id] = Date.now(); res(ok); };
+    const fim = ok => { ov.remove(); document.removeEventListener('keydown', esc); if (ok) marca(id); else nao[id] = Date.now(); res(ok); };
     const esc = e => { if (e.key === 'Escape') fim(false); };
     const ov = h('div', { class: 'modal', role: 'dialog', 'aria-modal': 'true', 'aria-labelledby': 'mdT' },
       h('div', { class: 'modal-b' },
-        h('h2', { id: 'mdT', text: 'BAIXAR ' + m.nome.toUpperCase() }),
-        h('p', { text: 'Esta ferramenta roda 100% no seu aparelho: seus arquivos não são enviados nem baixados de lugar nenhum.' }),
-        h('p', { text: `Para isso, o módulo "${m.nome}" precisa ser baixado uma vez (${mbTxt(size)}${m.disco ? `, ocupa cerca de ${m.disco} MB no aparelho` : ''}). Depois fica guardado e funciona até sem internet.` }),
-        cel ? h('p', { class: 'warn', text: 'Você parece estar em dados móveis. Se tiver Wi-Fi, melhor esperar.' }) : null,
-        h('p', { class: 'note', text: 'Serve para: ' + m.quem + '. Você pode remover os módulos baixados na página inicial, em "Módulos baixados".' }),
+        h('h2', { id: 'mdT', text: 'BAIXAR AGORA?' }),
+        h('p', { text: `Esta ferramenta precisa baixar "${m.nome}" (${mbTxt(size)}).` }),
+        h('p', { text: 'É só desta vez: depois fica salvo no seu aparelho e você nunca mais precisa baixar de novo.' }),
+        h('p', { class: 'note', text: 'Você está numa conexão móvel ou lenta, por isso perguntamos. Se preferir, espere o Wi-Fi.' }),
         h('div', { class: 'row' }, btn('BAIXAR ' + mbTxt(size), () => fim(true), 'g', { id: 'modSim' }), btn('AGORA NÃO', () => fim(false), '', { id: 'modNao' }))));
     document.addEventListener('keydown', esc); document.body.append(ov); ov.querySelector('#modSim').focus();
   });
@@ -56,24 +63,62 @@ export async function remover(id) {
   ids.forEach(k => delete o[k]); gravaOk(o); return n;
 }
 
-// Linha de aviso no topo de cada ferramenta.
+// Aviso no topo de cada ferramenta: uma linha discreta, e (só se faltar baixar algo) outra linha separada, ainda mais apagada.
 export function aviso(slug) {
   const ids = POR_TOOL[slug];
-  if (!ids) return h('p', { class: 'runlocal', id: 'runlocal', text: '🔒 Roda 100% no seu aparelho. Seus arquivos e textos não são enviados para ninguém.' });
+  const caixa = h('div', { class: 'avisos', id: 'runlocal' }, h('p', { class: 'runlocal', text: '🔒 Roda 100% no seu aparelho: nada é enviado.' }));
+  if (!ids || ids.every(baixado)) return caixa;
   const txt = ids.length === 1
-    ? `Módulo: ${MODULOS[ids[0]].nome} (${tamanho(ids[0])}, baixa uma vez) · ${baixado(ids[0]) ? 'já baixado ✓' : 'ainda não baixado'}.`
-    : 'Você escolhe o que baixar: ' + ids.map(i => `${MODULOS[i].nome.replace('IA de recorte para ', '')} ${tamanho(i)}${baixado(i) ? ' ✓' : ''}`).join(' · ') + '.';
-  return h('p', { class: 'runlocal', id: 'runlocal' }, '🔒 Roda 100% no seu aparelho: nada é enviado. ', h('span', { text: txt }), ' ', h('a', { href: '/#modulos', text: 'Ver módulos' }));
+    ? `Usa um módulo de ${tamanho(ids[0])}, baixado uma vez e salvo.`
+    : 'Usa um módulo baixado uma vez e salvo: ' + ids.map(i => `${MODULOS[i].nome.replace('IA de recorte para ', '')} ${tamanho(i)}`).join(' · ') + '.';
+  caixa.append(h('p', { class: 'modnote', text: txt + ' ' }, h('a', { href: '/#modulos', text: 'Ver módulos' })));
+  return caixa;
+}
+
+// Baixa o módulo agora, sem precisar abrir a ferramenta. onProg(0..1 ou null).
+const ORT = 'https://cdn.jsdelivr.net/npm/onnxruntime-web@1.19.2/dist/';
+const ANIME = 'https://huggingface.co/skytnt/anime-seg/resolve/main/isnetis.onnx';
+const FF = 'https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.6/dist/umd/';
+async function pegar(url, fatia, onProg, opcional) {
+  try {
+    const c = await caches.open(CACHE); if (await c.match(url)) return onProg?.(fatia[1]);
+    const r = await fetch(url); if (!r.ok) throw new Error('Falha ao baixar ' + url.split('/').pop());
+    const total = +r.headers.get('content-length') || 0, rd = r.body.getReader(), partes = []; let got = 0;
+    for (;;) { const { done, value } = await rd.read(); if (done) break; partes.push(value); got += value.length; if (total) onProg?.(fatia[0] + (fatia[1] - fatia[0]) * Math.min(1, got / total)); }
+    await c.put(url, new Response(new Blob(partes), { headers: { 'content-type': r.headers.get('content-type') || 'application/octet-stream' } })); onProg?.(fatia[1]);
+  } catch (e) { if (!opcional) throw e; }
+}
+export async function baixarManual(id, onProg) {
+  const m = MODULOS[id]; if (!m) return;
+  if (id === 'video') { await pegar(FF + 'ffmpeg-core.js', [0, .05], onProg); await pegar(FF + 'ffmpeg-core.wasm', [.05, 1], onProg); }
+  else if (id === 'ocr') { const O = await import('./tools/ocr.js'); onProg?.(null); await O.preparar('por+eng', p => onProg?.(p)); }
+  else if (id === 'ia-anime') {
+    await pegar(ORT + 'ort.min.js', [0, .01], onProg); await pegar(ORT + 'ort-wasm-simd-threaded.wasm', [.01, .1], onProg, true); await pegar(ORT + 'ort-wasm-simd-threaded.mjs', [.1, .11], onProg, true);
+    await pegar(ANIME, [.11, 1], onProg);
+  } else { // IA de fotos (@imgly): a própria biblioteca sabe quais arquivos baixar
+    const lib = await import('https://cdn.jsdelivr.net/npm/@imgly/background-removal@1.5.5/+esm'); onProg?.(null);
+    let feito = 0, tudo = 0; const por = {};
+    await lib.preload({ model: id === 'ia-foto-max' ? 'isnet' : 'isnet_fp16', progress: (k, cur, tot) => { por[k] = [cur, tot]; feito = 0; tudo = 0; for (const [a, b] of Object.values(por)) { feito += a; tudo += b; } if (tudo) onProg?.(feito / tudo); } });
+  }
+  marca(id); onProg?.(1);
 }
 
 // Painel "Módulos baixados" da página inicial.
 export function painel(box) {
   const ul = h('ul', { class: 'mods' }); const info = h('p', { class: 'note', id: 'modInfo' });
+  const ocupado = new Set();
   const draw = async () => {
     ul.replaceChildren(...Object.entries(MODULOS).map(([id, m]) => {
-      const ok = baixado(id);
-      return h('li', {}, h('div', {}, h('b', { text: m.nome }), h('small', { text: `${tamanho(id)} · ${m.quem}` }), h('small', { class: ok ? 'ok' : '', text: ok ? 'Baixado ✓' : 'Não baixado' })),
-        ok ? btn('REMOVER', async () => { const n = await remover(id); info.textContent = n ? 'Módulo removido. O espaço foi liberado.' : 'Módulo removido da lista. Se o navegador ainda guardar uma cópia automática, limpe os dados do site nas configurações dele.'; draw(); }, 'r', { 'data-rm': id }) : null);
+      const ok = baixado(id), st = h('small', { class: ok ? 'ok' : '', text: ok ? 'Baixado ✓' : 'Não baixado' });
+      const acao = ok
+        ? btn('REMOVER', async () => { const n = await remover(id); info.textContent = n ? 'Módulo removido. O espaço foi liberado.' : 'Módulo removido da lista. Se o navegador ainda guardar uma cópia automática, limpe os dados do site nas configurações dele.'; draw(); }, 'r', { 'data-rm': id })
+        : btn('BAIXAR', async () => {
+          if (ocupado.has(id)) return; ocupado.add(id); acao.disabled = true; st.className = ''; st.textContent = 'Baixando… 0%'; info.textContent = '';
+          try { await baixarManual(id, p => { st.textContent = p == null ? 'Baixando…' : `Baixando… ${Math.min(99, Math.round(p * 100))}%`; }); info.textContent = `${m.nome} baixado. Agora fica salvo no aparelho.`; }
+          catch (e) { info.textContent = 'Não consegui baixar agora. Confira a conexão e tente de novo.'; console.error(e); }
+          ocupado.delete(id); draw();
+        }, 'g', { 'data-dl': id });
+      return h('li', {}, h('div', {}, h('b', { text: m.nome }), h('small', { text: `${tamanho(id)} · ${m.quem}` }), st), acao);
     }));
     try { const e = await navigator.storage?.estimate?.(); if (e?.usage != null) info.dataset.usage = fmtBytes(e.usage); } catch {}
   };

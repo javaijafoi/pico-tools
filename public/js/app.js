@@ -1,5 +1,5 @@
 import { bySlug } from './registry.js';
-import { h, toast } from './lib.js';
+import { h, toast, btn, copyText } from './lib.js';
 import { aviso, painel } from './modulos.js';
 
 const norm = s => s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
@@ -34,6 +34,7 @@ function home() {
 // Proteções: texto de 5 a 500 caracteres, campo-isca para robôs, intervalo de 60 s e no máx. 3 pedidos por dia
 // neste aparelho; no banco há limite global por hora/dia e pedidos repetidos são ignorados.
 const SB = 'https://xhncsuemwfybihpxzvfj.supabase.co', SB_KEY = 'sb_publishable_MJ29j25WCA42QkQedXvJew_2yrxz-2I';
+const enviar = (texto, contato, isca) => fetch(SB + '/rest/v1/rpc/multitool_pedir', { method: 'POST', headers: { apikey: SB_KEY, 'content-type': 'application/json' }, body: JSON.stringify({ p_texto: texto, p_contato: contato || null, p_isca: isca || '' }) });
 function pedido() {
   const f = document.getElementById('pedidoForm'); if (!f) return;
   const st = document.getElementById('pedSt'), btn = document.getElementById('pedBtn');
@@ -47,7 +48,7 @@ function pedido() {
     if (h_.length >= 3) return say('Você já mandou 3 pedidos hoje. Volte amanhã!', 'bad');
     btn.disabled = true; say('Enviando…');
     try {
-      const r = await fetch(SB + '/rest/v1/rpc/multitool_pedir', { method: 'POST', headers: { apikey: SB_KEY, 'content-type': 'application/json' }, body: JSON.stringify({ p_texto: txt, p_contato: document.getElementById('pedCont').value.trim() || null, p_isca: document.getElementById('pedIsca').value }) });
+      const r = await enviar(txt, document.getElementById('pedCont').value.trim(), document.getElementById('pedIsca').value);
       const res = r.ok ? await r.json() : null;
       if (res === 'ok') { try { localStorage.setItem('pedidos', JSON.stringify([...h_, Date.now()])); } catch {} f.reset(); say('Pedido recebido! Obrigado.', 'ok'); }
       else if (res === 'limite') say('Recebi pedidos demais agora. Tente de novo mais tarde.', 'bad');
@@ -57,8 +58,57 @@ function pedido() {
   });
 }
 
+
+// Compartilhar o app: folha de compartilhamento do celular (Web Share API) ou, sem ela, copia o link.
+function compartilhar() {
+  document.addEventListener('click', async e => {
+    if (!e.target.closest('[data-share]')) return;
+    const url = (document.querySelector('link[rel=canonical]')?.href || location.href);
+    const dados = { title: 'Pico Multitool', text: 'Pico Multitool: ferramentas grátis que rodam no seu aparelho, sem upload e sem cadastro.', url };
+    try { if (navigator.share) { await navigator.share(dados); return; } } catch (err) { if (err && err.name === 'AbortError') return; }
+    await copyText(url); toast('Link copiado! Agora é só colar na conversa.');
+  });
+}
+compartilhar();
+
+// Reportar bug: botão em toda ferramenta. Usa o mesmo formulário do "Peça sua tool", marcado como [BUG] com o nome da ferramenta.
+function bug(meta) {
+  const b = document.getElementById('bugBtn'); if (!b) return;
+  b.addEventListener('click', () => {
+    const hist = () => { try { return JSON.parse(localStorage.getItem('bugs') || '[]').filter(t => Date.now() - t < 864e5); } catch { return []; } };
+    const st = h('div', { class: 'status', id: 'bugSt', role: 'status', 'aria-live': 'polite' });
+    const say = (m, c = '') => { st.className = 'status ' + c; st.textContent = m; };
+    const txt = h('textarea', { id: 'bugTxt', rows: 4, maxlength: 400, placeholder: 'O que aconteceu? O que você esperava? (celular ou PC, qual navegador ajuda)' });
+    const cont = h('input', { type: 'text', id: 'bugCont', maxlength: 100, placeholder: 'Contato (opcional)', autocomplete: 'off' });
+    const isca = h('input', { type: 'text', id: 'bugIsca', tabindex: '-1', autocomplete: 'off' });
+    const fim = () => { ov.remove(); document.removeEventListener('keydown', esc); b.focus(); };
+    const esc = e => { if (e.key === 'Escape') fim(); };
+    const mandar = btn('ENVIAR', async () => {
+      const t = txt.value.trim(), hs = hist();
+      if (t.length < 5) return say('Conte um pouco mais (mínimo 5 letras).', 'bad');
+      if (hs.length && Date.now() - hs[hs.length - 1] < 30000) return say('Calma! Espere um pouco para mandar outro.', 'bad');
+      if (hs.length >= 5) return say('Você já mandou vários reports hoje. Obrigado! Volte amanhã.', 'bad');
+      mandar.disabled = true; say('Enviando…');
+      try {
+        const r = await enviar(`[BUG] ${meta.name} (/${meta.slug}/): ${t}`, cont.value.trim(), isca.value);
+        const res = r.ok ? await r.json() : null;
+        if (res === 'ok') { try { localStorage.setItem('bugs', JSON.stringify([...hs, Date.now()])); } catch {} say('Recebido! Obrigado por avisar.', 'ok'); txt.value = ''; setTimeout(fim, 1400); }
+        else if (res === 'limite') say('Recebi avisos demais agora. Tente mais tarde.', 'bad');
+        else say('Não consegui enviar. Tente de novo em instantes.', 'bad');
+      } catch { say('Sem conexão. Tente de novo.', 'bad'); }
+      mandar.disabled = false;
+    }, 'g', { id: 'bugSend' });
+    const ov = h('div', { class: 'modal', role: 'dialog', 'aria-modal': 'true', 'aria-labelledby': 'bugT' },
+      h('div', { class: 'modal-b' }, h('h2', { id: 'bugT', text: 'REPORTAR BUG' }),
+        h('p', { class: 'note', text: 'Ferramenta: ' + meta.name }), txt, h('div', { style: 'height:8px' }), cont,
+        h('div', { style: 'position:absolute;left:-9999px', 'aria-hidden': 'true' }, isca),
+        h('div', { class: 'row', style: 'margin-top:10px' }, mandar, btn('FECHAR', fim, '', { id: 'bugFecha' })), st));
+    document.addEventListener('keydown', esc); document.body.append(ov); txt.focus();
+  });
+}
+
 async function tool(slug) {
-  const meta = bySlug[slug];
+  const meta = bySlug[slug]; bug(meta);
   const root = document.getElementById('tool');
   try {
     const mod = await import(`./tools/${meta.group}.js`);

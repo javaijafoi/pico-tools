@@ -189,21 +189,41 @@ await test('pdf-para-texto', async p => { const img = await mkTextImg(p, 'texto2
 
 // ---------- aviso e escolha de download por módulo ----------
 { const c3 = await browser.newContext({ viewport: { width: 390, height: 844 }, hasTouch: true, acceptDownloads: true });
-  await c3.addInitScript(() => { try { localStorage.setItem('fav-aviso', String(Date.now())); } catch {} });
+  await c3.addInitScript(() => { try { localStorage.setItem('fav-aviso', String(Date.now())); if (sessionStorage.getItem('wifi') !== '1') Object.defineProperty(navigator, 'connection', { value: { effectiveType: '3g', type: 'cellular', saveData: false }, configurable: true }); } catch {} });
   const p = await c3.newPage(); const errs = []; p.on('pageerror', e => errs.push(e.message));
   try {
     await p.goto(BASE + '/contador-de-palavras/'); await p.waitForSelector('#runlocal'); has(await txt(p, '#runlocal'), '100% no seu aparelho');
-    await p.goto(BASE + '/comprimir-video/'); await p.waitForSelector('#runlocal'); has(await txt(p, '#runlocal'), '9,3 MB'); has(await txt(p, '#runlocal'), 'ainda não baixado');
+    await p.goto(BASE + '/comprimir-video/'); await p.waitForSelector('#runlocal'); has(await txt(p, '#runlocal'), '9,3 MB'); has(await txt(p, '#runlocal'), 'baixado uma vez');
     await p.setInputFiles('#file', MP4); await p.waitForFunction(() => /\d:\d\d/.test(document.getElementById('info').textContent)); await p.click('#goBtn');
-    await p.waitForSelector('.modal'); has(await txt(p, '.modal'), '9,3 MB'); has(await txt(p, '.modal'), 'não são enviados');
+    await p.waitForSelector('.modal'); has(await txt(p, '.modal'), '9,3 MB'); has(await txt(p, '.modal'), 'nunca mais');
     await p.click('#modNao'); await p.waitForSelector('#status:has-text("Download cancelado")'); eq(await p.evaluate(() => localStorage.getItem('modulos-ok')), null);
     await p.goto(BASE + '/remover-fundo/'); await p.waitForSelector('#runlocal'); const t = await txt(p, '#runlocal'); has(t, '100 MB'); has(t, '188 MB'); has(t, '178 MB');
     await p.evaluate(() => localStorage.setItem('modulos-ok', JSON.stringify({ video: 1 })));
     await p.goto(BASE + '/'); await p.waitForSelector('#modBox li'); eq(await p.$$eval('#modBox li', l => l.length), 5); eq(await p.$$eval('#modBox [data-rm]', l => l.length), 1);
     await p.click('[data-rm=video]'); await p.waitForFunction(() => !document.querySelector('[data-rm]')); eq(await p.evaluate(() => localStorage.getItem('modulos-ok')), '{}');
+    eq(await p.$$eval('#modBox [data-dl]', l => l.length), 5);
     const ov = await p.evaluate(() => document.documentElement.scrollWidth - innerWidth); if (ov > 2) throw new Error('overflow ' + ov);
-    if (errs.length) throw new Error(errs.join('|')); pass++; console.log('✔ módulos (aviso, recusa, remoção)'); }
+    // no Wi-Fi: baixa direto, sem pergunta
+    await p.evaluate(() => { sessionStorage.setItem('wifi', '1'); localStorage.removeItem('modulos-ok'); });
+    await p.goto(BASE + '/comprimir-video/'); await p.setInputFiles('#file', MP4); await p.waitForFunction(() => /\d:\d\d/.test(document.getElementById('info').textContent)); await p.click('#goBtn');
+    await p.waitForFunction(() => /video/.test(localStorage.getItem('modulos-ok') || ''), null, { timeout: 15000 }); eq(await p.$$eval('.modal', l => l.length), 0);
+    if (errs.length) throw new Error(errs.join('|')); pass++; console.log('✔ módulos (aviso, recusa, remoção, wi-fi direto, botão baixar)'); }
   catch (e) { fail++; fails.push('modulos'); console.log('✘ modulos →', e.message.split('\n')[0]); try { await p.screenshot({ path: TMP + '/fail-modulos.png', fullPage: true }); } catch {} } await c3.close(); }
+
+// ---------- compartilhar e reportar bug ----------
+{ const c4 = await browser.newContext({ viewport: { width: 390, height: 844 }, hasTouch: true, permissions: ['clipboard-read', 'clipboard-write'] });
+  await c4.addInitScript(() => { try { localStorage.setItem('fav-aviso', String(Date.now())); } catch {} });
+  const p = await c4.newPage(); const errs = []; p.on('pageerror', e => errs.push(e.message)); let corpo = null;
+  await p.route('**/rpc/multitool_pedir', r => { corpo = JSON.parse(r.request().postData()); r.fulfill({ status: 200, contentType: 'application/json', headers: { 'access-control-allow-origin': '*' }, body: '"ok"' }); });
+  try {
+    await p.goto(BASE + '/contador-de-palavras/'); await p.waitForSelector('#bugBtn');
+    await p.click('[data-share]'); await p.waitForSelector('.toast, #toast', { timeout: 4000 }).catch(() => {});
+    eq(/pico|multitool|javaijafoi/i.test(await p.evaluate(() => navigator.clipboard.readText())), true);
+    await p.click('#bugBtn'); await p.waitForSelector('#bugTxt'); await p.fill('#bugTxt', 'o botão não funciona'); await p.click('#bugSend'); await p.waitForSelector('#bugSt.ok');
+    has(corpo.p_texto, '[BUG]'); has(corpo.p_texto, 'Contador de palavras'); has(corpo.p_texto, 'o botão não funciona');
+    await p.goto(BASE + '/'); await p.waitForSelector('#shareBtn');
+    if (errs.length) throw new Error(errs.join('|')); pass++; console.log('✔ compartilhar e reportar bug'); }
+  catch (e) { fail++; fails.push('share-bug'); console.log('✘ share-bug →', e.message.split('\n')[0]); } await c4.close(); }
 
 await browser.close(); srv.close();
 console.log(`\n${pass} ok, ${fail} falhas${fails.length ? ': ' + fails.join(', ') : ''}`);
