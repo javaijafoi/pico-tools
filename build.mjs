@@ -116,10 +116,12 @@ self.addEventListener('fetch', e => {
   const r = e.request;
   if (r.method === 'GET' && MOD.test(r.url) && !r.headers.has('range')) { e.respondWith(caches.open('pico-modelos').then(async c => { const hit = await c.match(r.url); if (hit) return hit; const res = await fetch(r); if (res.status === 200) c.put(r.url, res.clone()).catch(() => {}); return res; })); return; }
   if (r.method !== 'GET' || new URL(r.url).origin !== location.origin) return;
+  // Rede primeiro: quem está online sempre recebe a versão mais nova; sem rede, usa a cópia guardada.
   e.respondWith(caches.open(V).then(async c => {
-    const hit = await c.match(r);
-    const net = fetch(r).then(res => { if (res.ok) c.put(r, res.clone()); return res; }).catch(() => hit);
-    return hit || net;
+    try {
+      const res = await Promise.race([fetch(r, { cache: 'no-cache' }), new Promise((_, no) => setTimeout(() => no(new Error('lento')), 6000))]);
+      if (res.ok) c.put(r, res.clone()); return res;
+    } catch { return (await c.match(r)) || (await c.match(r, { ignoreSearch: true })) || Response.error(); }
   }));
 });
 `);
