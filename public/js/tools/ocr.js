@@ -9,6 +9,8 @@ async function worker(lang, onProgress) {
   const T = await loadTess();
   return T.createWorker(lang.split('+'), 1, { langPath: CDN + 'gh/naptha/tessdata@gh-pages/4.0.0_fast', logger: m => onProgress?.(m) });
 }
+// Baixa o motor e o idioma sem ler nada (usado pelo botão BAIXAR do painel de módulos).
+export async function preparar(lang = 'por+eng', onProgress) { const w = await worker(lang, m => { if (m.progress != null) onProgress?.(m.progress); }); await w.terminate(); }
 const LANGS = [['por+eng', 'Português e inglês'], ['por', 'Só português'], ['eng', 'Só inglês'], ['spa+eng', 'Espanhol e inglês']];
 
 function ui(root, { title, accept, label, hint, run }) {

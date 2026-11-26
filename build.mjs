@@ -31,6 +31,7 @@ ${extra}
 
 const footer = `<footer>
 <p>PICO MULTITOOL · tudo roda no seu aparelho, nada é enviado</p>
+<p><button type="button" class="flink" data-share>↗ COMPARTILHAR</button></p>
 <p>feito por <a href="https://javaijafoi.dev">Peter Mac (javaijafoi)</a> · <a href="https://github.com/javaijafoi/pico-tools">código no GitHub</a> · MIT</p>
 </footer>`;
 
@@ -65,7 +66,8 @@ ${topbar}
 <label class="f"><span>Contato (opcional, se quiser aviso quando ficar pronta)</span><input type="text" id="pedCont" maxlength="100" placeholder="e-mail ou @usuario"></label>
 <div style="position:absolute;left:-9999px" aria-hidden="true"><label>Não preencha<input type="text" id="pedIsca" tabindex="-1" autocomplete="off"></label></div>
 <div class="row"><button type="submit" class="btn g" id="pedBtn">ENVIAR PEDIDO</button></div><div class="status" id="pedSt" role="status" aria-live="polite"></div></form></section>
-<section class="panel" id="modulos"><h2>MÓDULOS BAIXADOS</h2><p class="lead">Tudo roda no seu aparelho, mas algumas ferramentas (vídeo, OCR, remover fundo) precisam baixar um módulo uma vez. Aqui você vê o que já baixou e remove o que não quer guardar.</p><div id="modBox"></div></section>
+<section class="panel" id="modulos"><h2>MÓDULOS BAIXADOS</h2><p class="lead">Algumas ferramentas (vídeo, OCR, remover fundo) usam um módulo que baixa uma vez e fica salvo. Elas baixam sozinhas quando você precisa, mas aqui você pode baixar antes (melhor no Wi-Fi) ou remover o que não quer guardar.</p><div id="modBox"></div></section>
+<section class="panel" id="compartilhar"><h2>GOSTOU? COMPARTILHE</h2><p class="lead">Mande o Pico Multitool para um amigo ou grupo. É grátis, sem cadastro e roda no celular.</p><div class="row"><button type="button" class="btn g" data-share id="shareBtn">COMPARTILHAR O APP</button></div></section>
 <section class="seo"><h2>COMO FUNCIONA</h2><p>Cada ferramenta roda dentro do navegador, com JavaScript. Seus arquivos e textos ficam no aparelho: não existe servidor recebendo PDFs, fotos ou senhas. Depois da primeira visita, as ferramentas continuam funcionando sem internet.</p></section>
 ${footer}
 </div><script type="module" src="/js/app.js"></script></body></html>
@@ -84,7 +86,7 @@ for (const t of TOOLS) {
 <body data-tool="${t.slug}"><div class="wrap">
 ${topbar}
 <nav class="crumb" aria-label="Você está em"><a href="/">PICO MULTITOOL</a> › ${CATS[t.cat].name}</nav>
-<div class="tool-h"><span class="ic" aria-hidden="true">${t.icon}</span><h1>${esc(t.name)}</h1></div>
+<div class="tool-h"><span class="ic" aria-hidden="true">${t.icon}</span><h1>${esc(t.name)}</h1><button type="button" class="bugbtn" id="bugBtn" aria-label="Reportar um bug nesta ferramenta" title="Reportar bug">🐞<span>BUG?</span></button></div>
 <p class="lead">${esc(t.desc)}</p>
 <main id="tool"><div class="panel"><h2>CARREGANDO…</h2><noscript>Esta ferramenta precisa de JavaScript ligado no navegador.</noscript></div></main>
 <section class="seo"><h2>SOBRE ESTA FERRAMENTA</h2><p>${esc(t.seo)}</p><p>Tudo é processado no próprio aparelho, no navegador. Nada é enviado para servidores, não há cadastro e depois da primeira visita ela funciona offline.</p></section>
