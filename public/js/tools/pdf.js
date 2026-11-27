@@ -1,4 +1,4 @@
-import { pdfThumb, h, panel, row, field, btn, input, select, check, fmtBytes, baseName, download, loadImage, canvasBlob, dropzone, fileList, loadPdfLib, loadPdfJs, loadJSZip, status, setStatus, progress, sleep } from '../lib.js';
+import { pdfThumb, h, panel, row, field, btn, input, select, check, fmtBytes, baseName, download, dlBtn, loadImage, canvasBlob, dropzone, fileList, loadPdfLib, loadPdfJs, loadJSZip, status, setStatus, progress, sleep } from '../lib.js';
 
 const ENC_MSG = 'Este PDF tem proteção contra edição. Use a ferramenta "Comprimir PDF": ela consegue abrir e gerar uma cópia sem a trava.';
 const isEnc = e => /encrypt/i.test(e?.constructor?.name + ' ' + e?.message);
@@ -39,7 +39,7 @@ function outputs() {
     add(blob, name, info = '') {
       made.push({ blob, name });
       const isPdf = /pdf/.test(blob.type) || /\.pdf$/i.test(name); const prev = h('div', { class: 'cmp one' });
-      ul.append(h('li', { class: 'res' }, h('div', { class: 'rh' }, h('span', { class: 'n', text: name }), h('span', { class: 's', text: fmtBytes(blob.size) + (info ? ' · ' + info : '') }), h('button', { type: 'button', onclick: () => download(blob, name) }, '⬇')), isPdf ? prev : null));
+      ul.append(h('li', { class: 'res' }, h('div', { class: 'rh' }, h('span', { class: 'n', text: name }), h('span', { class: 's', text: fmtBytes(blob.size) + (info ? ' · ' + info : '') })), isPdf ? prev : null, h('div', { class: 'dl-row' }, dlBtn(blob, name))));
       if (isPdf && made.length <= 6) pdfThumb(blob).then(c => { if (c) prev.append(h('figure', null, c, h('figcaption', { text: 'PRÉVIA · pág. 1' }))); else prev.remove(); });
       else prev.remove();
       zipBtn.hidden = made.length < 2;

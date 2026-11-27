@@ -46,6 +46,18 @@ export function download(blob, name) {
   document.body.append(a); a.click(); a.remove();
   setTimeout(() => URL.revokeObjectURL(url), 4000);
 }
+// Botão grande e com texto para baixar um resultado (nunca só um ícone).
+export function dlLabel(blob, name = '') {
+  const t = blob.type || '', n = name.toLowerCase();
+  if (/gif$/.test(t) || /\.gif$/.test(n)) return 'BAIXAR GIF';
+  if (/^image\//.test(t)) return 'BAIXAR IMAGEM';
+  if (/pdf/.test(t) || /\.pdf$/.test(n)) return 'BAIXAR PDF';
+  if (/^video\//.test(t)) return 'BAIXAR VÍDEO';
+  if (/^audio\//.test(t)) return 'BAIXAR ÁUDIO';
+  if (/zip/.test(t)) return 'BAIXAR ZIP';
+  return 'BAIXAR ARQUIVO';
+}
+export const dlBtn = (blob, name, extra = {}) => btn('⬇ ' + dlLabel(blob, name), () => download(blob, name), 'g dl-main', extra);
 export const textBlob = (s, type = 'text/plain') => new Blob([s], { type: type + ';charset=utf-8' });
 
 export function fmtBytes(n) {
