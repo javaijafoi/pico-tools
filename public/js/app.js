@@ -122,7 +122,16 @@ async function tool(slug) {
 }
 
 if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
-  navigator.serviceWorker.register(new URL('../sw.js', import.meta.url).pathname).catch(() => {});
+  const tinha = !!navigator.serviceWorker.controller;
+  navigator.serviceWorker.register(new URL('../sw.js', import.meta.url).pathname, { updateViaCache: 'none' }).then(r => r.update().catch(() => {})).catch(() => {});
+  // Saiu uma versão nova: avisa, sem recarregar sozinho (para não perder o que a pessoa está fazendo).
+  let avisou = false;
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    if (!tinha || avisou) return; avisou = true;
+    const bar = h('div', { class: 'fav', role: 'status', id: 'novaVersao' }, h('p', { text: '✨ Nova versão do Pico Multitool pronta.' }),
+      h('div', { class: 'fav-b' }, h('button', { type: 'button', class: 'btn g', id: 'novaSim', onclick: () => location.reload() }, 'ATUALIZAR'), h('button', { type: 'button', class: 'btn', onclick: () => bar.remove() }, 'DEPOIS')));
+    document.body.append(bar);
+  });
 }
 const slug = document.body.dataset.tool;
 if (slug) tool(slug); else home();
