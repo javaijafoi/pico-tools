@@ -155,3 +155,7 @@ footer a{color:var(--yellow)}
 .tool-h .bugbtn{font-size:16px;padding:5px 8px}.tool-h .bugbtn span{font-size:8px}
 .dl-row{width:100%;margin-top:10px}
 .dl-row .btn,.btn.dl-main{display:block;width:100%;padding:16px 12px;font-size:12px}
+.prog.ind i{width:100%!important;background:repeating-linear-gradient(-45deg,var(--lime) 0 12px,#00a02a 12px 24px);background-size:34px 34px;animation:pbusy .8s linear infinite}
+@keyframes pbusy{to{background-position:34px 0}}
+@media(prefers-reduced-motion:reduce){.prog.ind i{animation:none}}
+.status.work{color:var(--navy,#1d2b53)}
