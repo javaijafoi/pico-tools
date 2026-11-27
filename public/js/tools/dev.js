@@ -87,7 +87,7 @@ export const tools = {
     const run2 = () => { if (!dt.value) { o2.textContent = ''; return; } o2.textContent = ft(new Date(dt.value)); };
     const now = new Date(); dt.value = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}T${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
     ts.addEventListener('input', run); dt.addEventListener('input', run2);
-    root.append(panel('TIMESTAMP → DATA', field('Unix timestamp (s ou ms)', ts), row(btn('AGORA', () => { ts.value = Math.floor(Date.now() / 1000); run(); }, 'g')), o), panel('DATA → TIMESTAMP', field('Data e hora locais', dt), o2));
+    root.append(panel('TIMESTAMP → DATA', field('Unix timestamp (s ou ms)', ts), row(btn('AGORA', () => { ts.value = Math.floor(Date.now() / 1000); run(); }, 'g')), o, row(copyBtn(() => o.textContent))), panel('DATA → TIMESTAMP', field('Data e hora locais', dt), o2, row(copyBtn(() => o2.textContent))));
     run(); run2();
   },
 
@@ -105,7 +105,7 @@ export const tools = {
       if (rep.value) { try { rout.textContent = t.replace(new RegExp(re.value, fl.value), rep.value); } catch {} }
     };
     [re, fl, txt, rep].forEach(e => e.addEventListener('input', run));
-    root.append(panel('EXPRESSÃO', row(field('Regex', re), field('Flags (g i m s u)', fl))), panel('TEXTO DE TESTE', txt), panel('CORRESPONDÊNCIAS', hl, info), panel('SUBSTITUIÇÃO', field('Substituir por', rep), rout));
+    root.append(panel('EXPRESSÃO', row(field('Regex', re), field('Flags (g i m s u)', fl))), panel('TEXTO DE TESTE', txt), panel('CORRESPONDÊNCIAS', hl, info), panel('SUBSTITUIÇÃO', field('Substituir por', rep), rout, row(copyBtn(() => rout.textContent))));
     run();
   },
 };

@@ -1,4 +1,4 @@
-import { h, panel, row, field, btn, select, check, fmtBytes, baseName, download, loadImage, canvasBlob, dropzone, loadJSZip, status, setStatus, progress } from '../lib.js';
+import { h, panel, row, field, btn, select, check, fmtBytes, baseName, download, loadImage, canvasBlob, dlBtn, dropzone, loadJSZip, status, setStatus, progress } from '../lib.js';
 
 const EXT = { 'image/png': 'png', 'image/jpeg': 'jpg', 'image/webp': 'webp' };
 
@@ -37,7 +37,7 @@ function batch(root, { title, options = [], process, hint, accept = 'image/*' })
         const delta = r.blob.size - f.size;
         const before = URL.createObjectURL(f); const fig = (cap, src) => h('figure', null, h('a', { href: src, target: '_blank', rel: 'noopener', 'aria-label': 'abrir ' + cap }, h('img', { src, alt: cap })), h('figcaption', { text: cap }));
         results.append(h('li', { class: 'res' }, h('div', { class: 'rh' }, h('span', { class: 'n', text: name }), h('span', { class: 's', text: `${fmtBytes(f.size)} → ${fmtBytes(r.blob.size)}${r.info ? ' · ' + r.info : ''}` }),
-          h('button', { type: 'button', onclick: () => download(r.blob, name) }, '⬇')), h('div', { class: 'cmp' }, fig('ANTES', before), fig('DEPOIS', url))));
+          ), h('div', { class: 'cmp' }, fig('ANTES', before), fig('DEPOIS', url)), h('div', { class: 'dl-row' }, dlBtn(r.blob, name))));
       } catch (e) { results.append(h('li', null, h('span', { class: 'n bad', text: `${f.name}: ${e.message}` }))); }
     }
     prog.hide(); setStatus(st, made.length ? 'Pronto! Baixe abaixo.' : 'Nenhuma imagem processada.', made.length ? 'ok' : 'bad');
@@ -238,7 +238,7 @@ export const tools = {
       const c = document.createElement('canvas'); c.width = ow; c.height = oh; const x = c.getContext('2d'); if (fmt.value === 'image/jpeg') { x.fillStyle = '#fff'; x.fillRect(0, 0, ow, oh); } x.imageSmoothingQuality = 'high';
       x.drawImage(img, cx - w / 2, cy - h_ / 2, w, h_, 0, 0, ow, oh);
       const blob = await canvasBlob(c, fmt.value, 0.92); const name = baseName(file.name) + `-${ow}x${oh}.` + EXT[blob.type || fmt.value];
-      results.replaceChildren(h('li', { class: 'res' }, h('div', { class: 'rh' }, h('span', { class: 'n', text: name }), h('span', { class: 's', text: `${ow}×${oh} · ${fmtBytes(blob.size)}` }), h('button', { type: 'button', id: 'dl', onclick: () => download(blob, name) }, '⬇')), h('div', { class: 'cmp one' }, h('figure', null, h('img', { src: URL.createObjectURL(blob), alt: 'resultado' }), h('figcaption', { text: 'RESULTADO' })))));
+      results.replaceChildren(h('li', { class: 'res' }, h('div', { class: 'rh' }, h('span', { class: 'n', text: name }), h('span', { class: 's', text: `${ow}×${oh} · ${fmtBytes(blob.size)}` }), ), h('div', { class: 'cmp one' }, h('figure', null, h('img', { src: URL.createObjectURL(blob), alt: 'resultado' }), h('figcaption', { text: 'RESULTADO' }))), h('div', { class: 'dl-row' }, dlBtn(blob, name, { id: 'dl' }))));
       setStatus(st, 'Pronto! Baixe abaixo.', 'ok');
     }, 'g', { id: 'goBtn' });
     const dz = dropzone({ accept: 'image/*', label: 'ESCOLHER IMAGEM', onFiles: async fs => { file = fs[0]; try { img = await loadImage(file); cx = img.naturalWidth / 2; cy = img.naturalHeight / 2; zoom.value = 100; draw(); setStatus(st, 'Arraste a área amarela para escolher o enquadramento.'); } catch (e) { setStatus(st, e.message, 'bad'); } } });
