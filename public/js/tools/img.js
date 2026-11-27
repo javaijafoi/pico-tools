@@ -146,7 +146,7 @@ export const tools = {
     async function animeMask(orig) {
       if (!session) {
         await new Promise((ok, no) => { if (window.ort) return ok(); const s = h('script', { src: ORT + 'ort.min.js' }); s.onload = ok; s.onerror = () => no(new Error('Falha ao carregar o motor de IA')); document.head.append(s); });
-        window.ort.env.wasm.wasmPaths = ORT; window.ort.env.wasm.numThreads = 1;
+        window.ort.env.wasm.wasmPaths = ORT; window.ort.env.wasm.numThreads = 1; window.ort.env.wasm.proxy = true; // proxy: a IA roda num worker e a página não trava
         const buf = await fetchModel(ANIME); say('Preparando o modelo…'); session = await window.ort.InferenceSession.create(buf, { executionProviders: ['wasm'] });
       }
       say('Recortando a ilustração… pode levar de 20 a 60 segundos.');
