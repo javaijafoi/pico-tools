@@ -98,7 +98,7 @@ export function fileList(files, onChange, { reorder = true } = {}) {
 
 export const status = () => h('div', { class: 'status', id: 'status', role: 'status', 'aria-live': 'polite' });
 export function setStatus(el, msg, cls = '') { el.className = 'status ' + cls; el.textContent = msg; }
-export function progress() { const i = h('i'); const p = h('div', { class: 'prog', hidden: true }, i); p.set = v => { p.hidden = false; i.style.width = Math.round(v * 100) + '%'; }; p.hide = () => { p.hidden = true; }; return p; }
+export function progress() { const i = h('i'); const p = h('div', { class: 'prog', hidden: true, role: 'progressbar', 'aria-label': 'Progresso' }, i); p.set = v => { p.hidden = false; p.classList.remove('ind'); i.style.width = Math.max(2, Math.round(v * 100)) + '%'; }; p.busy = () => { p.hidden = false; p.classList.add('ind'); }; p.hide = () => { p.hidden = true; p.classList.remove('ind'); }; return p; }
 
 // Carrega scripts de vendor sob demanda
 const loaded = {};

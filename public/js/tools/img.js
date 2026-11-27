@@ -26,7 +26,7 @@ function batch(root, { title, options = [], process, hint, accept = 'image/*' })
     results.replaceChildren(); made.length = 0; zipBtn.hidden = true;
     const used = new Set();
     for (let i = 0; i < files.length; i++) {
-      const f = files[i]; setStatus(st, `Processando ${i + 1}/${files.length}: ${f.name}`); prog.set(i / files.length);
+      const f = files[i]; setStatus(st, `Processando ${i + 1}/${files.length}: ${f.name}`); if (files.length > 1) prog.set(i / files.length); else prog.busy();
       try {
         const img = await loadImage(f);
         const r = await process(img, f);
@@ -50,6 +50,7 @@ function batch(root, { title, options = [], process, hint, accept = 'image/*' })
   root.append(panel(title, dz, list), options.length ? panel('AJUSTES', row(...options)) : '', panel('RESULTADO', go_, st, prog, results, row(zipBtn)));
   // reprocessa ao mudar ajustes
   options.forEach(o => o.addEventListener('input', () => { if (files.length) go(); }));
+  return { prog, st };
 }
 
 export const tools = {
@@ -125,12 +126,16 @@ export const tools = {
     const col = h('input', { type: 'color', id: 'col', value: '#00e436', hidden: true });
     bg.addEventListener('change', () => { col.hidden = bg.value !== 'custom'; });
     const msg = h('div', { class: 'status', id: 'modelmsg' });
-    const say = (t, c = '') => { msg.className = 'status ' + c; msg.textContent = t; };
+    const say = (t, c = '') => { msg.className = 'status ' + c; msg.textContent = t; if (ui && t) { ui.st.className = 'status ' + c; ui.st.textContent = t; } }; // mostra também perto do botão PROCESSAR
     const IMGLY = 'https://cdn.jsdelivr.net/npm/@imgly/background-removal@1.5.5/+esm';
     const ORT = 'https://cdn.jsdelivr.net/npm/onnxruntime-web@1.19.2/dist/';
     const ANIME = 'https://huggingface.co/skytnt/anime-seg/resolve/main/isnetis.onnx';
     let lib, session; const states = new WeakMap(); // arquivo → { modo → { orig, mask } }
 
+    // Etapa com cronômetro: barra animada, segundos passando e estimativa, para nunca parecer travado.
+    let tick = null, ui = null;
+    const fim = () => { clearInterval(tick); say(''); };
+    const fase = (txt, est) => { clearInterval(tick); const t0 = Date.now(); ui?.prog.busy(); const draw = () => say(`${txt}… ${Math.round((Date.now() - t0) / 1000)} s (costuma levar ${est}). Pode demorar, a página continua funcionando.`); draw(); tick = setInterval(draw, 1000); };
     const cvs = (w, h_) => { const c = document.createElement('canvas'); c.width = w; c.height = h_; return c; };
     // Baixa o modelo com barra de progresso e guarda no cache do navegador (só baixa uma vez).
     async function fetchModel(url) {
@@ -138,7 +143,7 @@ export const tools = {
       if (!r) {
         const net = await fetch(url); if (!net.ok) throw new Error('Não consegui baixar o modelo de ilustração.');
         const total = +net.headers.get('content-length') || 176069933, rd = net.body.getReader(), parts = []; let got = 0;
-        for (;;) { const { done, value } = await rd.read(); if (done) break; parts.push(value); got += value.length; say(`Baixando o modelo (só na primeira vez): ${Math.min(99, Math.round(got / total * 100))}%`); }
+        for (;;) { const { done, value } = await rd.read(); if (done) break; parts.push(value); got += value.length; const pc = Math.min(99, Math.round(got / total * 100)); ui?.prog.set(pc / 100); say(`Baixando o modelo (só na primeira vez): ${pc}% de ${Math.round(total / 1e6)} MB`); }
         const blob = new Blob(parts, { type: 'application/octet-stream' }); try { await cache?.put(url, new Response(blob)); } catch {} return blob.arrayBuffer();
       }
       return r.arrayBuffer();
@@ -147,9 +152,9 @@ export const tools = {
       if (!session) {
         await new Promise((ok, no) => { if (window.ort) return ok(); const s = h('script', { src: ORT + 'ort.min.js' }); s.onload = ok; s.onerror = () => no(new Error('Falha ao carregar o motor de IA')); document.head.append(s); });
         window.ort.env.wasm.wasmPaths = ORT; window.ort.env.wasm.numThreads = 1; window.ort.env.wasm.proxy = true; // proxy: a IA roda num worker e a página não trava
-        const buf = await fetchModel(ANIME); say('Preparando o modelo…'); session = await window.ort.InferenceSession.create(buf, { executionProviders: ['wasm'] });
+        const buf = await fetchModel(ANIME); fase('Preparando o modelo', '10 a 30 s'); session = await window.ort.InferenceSession.create(buf, { executionProviders: ['wasm'] });
       }
-      say('Recortando a ilustração… pode levar de 20 a 60 segundos.');
+      fase('Recortando a ilustração', '20 a 60 s');
       const S = 1024, W = orig.width, H = orig.height, k = Math.min(S / W, S / H), w = Math.round(W * k), h_ = Math.round(H * k), px = Math.floor((S - w) / 2), py = Math.floor((S - h_) / 2);
       const inC = cvs(S, S), ic = inC.getContext('2d', { willReadFrequently: true }); ic.fillStyle = '#000'; ic.fillRect(0, 0, S, S); ic.imageSmoothingQuality = 'high'; ic.drawImage(orig, px, py, w, h_);
       const d = ic.getImageData(0, 0, S, S).data, f = new Float32Array(3 * S * S);
@@ -161,8 +166,10 @@ export const tools = {
       const mask = cvs(W, H), c = mask.getContext('2d'); c.imageSmoothingQuality = 'high'; c.drawImage(mc, px, py, w, h_, 0, 0, W, H); return mask;
     }
     async function photoMask(file, orig, model) {
-      lib ??= await import(IMGLY); say('Recortando… (na primeira vez baixa o modelo)');
-      const cut = await lib.removeBackground(file, { model, output: { format: 'image/png' } });
+      lib ??= await import(IMGLY); say('Preparando…'); ui?.prog.busy(); let rec = false; const por = {};
+      const cut = await lib.removeBackground(file, { model, output: { format: 'image/png' }, progress: (k, c, t) => {
+        if (/^fetch/.test(k)) { por[k] = [c, t]; let a = 0, b = 0; for (const [x, y] of Object.values(por)) { a += x; b += y; } if (b) { ui?.prog.set(a / b); say(`Baixando o modelo (só na primeira vez): ${Math.min(99, Math.round(a / b * 100))}%`); } }
+        else if (!rec) { rec = true; fase('Recortando a foto', '5 a 20 s'); } } });
       const im = await loadImage(cut); const mask = cvs(orig.width, orig.height), c = mask.getContext('2d'); c.drawImage(im, 0, 0, mask.width, mask.height);
       c.globalCompositeOperation = 'source-in'; c.fillStyle = '#fff'; c.fillRect(0, 0, mask.width, mask.height); return mask;
     }
@@ -170,7 +177,7 @@ export const tools = {
       if (fill !== 'none') { x.globalCompositeOperation = 'destination-over'; x.fillStyle = fill; x.fillRect(0, 0, c.width, c.height); } return c; };
 
     const editor = { files: [], sel: null }; let refresh = () => {};
-    batch(root, {
+    ui = batch(root, {
       title: 'IMAGENS', hint: 'pessoas, produtos, animais, desenhos… ou arraste aqui', options: [field('Tipo de imagem', modo), field('Fundo', bg), col],
       process: async (img, f) => {
         let per = states.get(f); if (!per) states.set(f, per = {});
@@ -179,8 +186,8 @@ export const tools = {
           const M = await import('../modulos.js'); const mid = modo.value === 'anime' ? 'ia-anime' : modo.value === 'foto-max' ? 'ia-foto-max' : 'ia-foto';
           if (!await M.garantir(mid)) throw M.recusou();
           const orig = cvs(img.naturalWidth, img.naturalHeight); orig.getContext('2d').drawImage(img, 0, 0);
-          const mask = modo.value === 'anime' ? await animeMask(orig) : await photoMask(f, orig, modo.value === 'foto-max' ? 'isnet' : 'isnet_fp16');
-          st = per[modo.value] = { orig, mask, file: f }; say('');
+          let mask; try { mask = modo.value === 'anime' ? await animeMask(orig) : await photoMask(f, orig, modo.value === 'foto-max' ? 'isnet' : 'isnet_fp16'); } catch (e) { fim(); throw e; }
+          st = per[modo.value] = { orig, mask, file: f }; fim();
         }
         if (!editor.files.includes(st)) editor.files.push(st); editor.sel ??= st; refresh();
         const fill = bg.value === 'custom' ? col.value : bg.value; const c = compose(st, fill);
