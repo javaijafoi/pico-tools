@@ -12,7 +12,7 @@ function drawTo(img, w, h_, { flatten = false } = {}) {
 }
 
 // Estrutura comum: escolher imagens, processar, listar resultados com download individual e ZIP.
-function batch(root, { title, options = [], process, hint, accept = 'image/*' }) {
+function batch(root, { title, options = [], process, hint, accept = 'image/*', manual = false }) {
   const files = [];
   const st = status(), prog = progress();
   const results = h('ul', { class: 'files', id: 'results' });
@@ -22,7 +22,7 @@ function batch(root, { title, options = [], process, hint, accept = 'image/*' })
     download(await z.generateAsync({ type: 'blob' }), 'imagens.zip');
   }, 'g', { id: 'zipBtn', hidden: true });
   const go = async () => {
-    if (!files.length) return;
+    if (!files.length) return setStatus(st, 'Escolha uma imagem primeiro.', 'bad');
     results.replaceChildren(); made.length = 0; zipBtn.hidden = true;
     const used = new Set();
     for (let i = 0; i < files.length; i++) {
@@ -46,10 +46,10 @@ function batch(root, { title, options = [], process, hint, accept = 'image/*' })
   const list = h('ul', { class: 'files', id: 'filelist' });
   const draw = () => list.replaceChildren(...files.map((f, i) => h('li', null, h('img', { src: f._url ??= URL.createObjectURL(f), alt: '', class: 'mini' }), h('span', { class: 'n', text: f.name }), h('span', { class: 's', text: fmtBytes(f.size) }), h('button', { type: 'button', onclick: () => { files.splice(i, 1); draw(); } }, '✕'))));
   const go_ = btn('PROCESSAR', go, 'g', { id: 'goBtn' });
-  const dz = dropzone({ accept, multiple: true, label: 'ESCOLHER IMAGENS', hint: hint || 'ou arraste aqui (várias de uma vez)', onFiles: fs => { files.push(...fs.filter(f => f.type.startsWith('image/') || /\.(png|jpe?g|webp|gif|bmp|avif)$/i.test(f.name))); draw(); if (files.length) go(); } });
+  const dz = dropzone({ accept, multiple: true, label: 'ESCOLHER IMAGENS', hint: hint || 'ou arraste aqui (várias de uma vez)', onFiles: fs => { files.push(...fs.filter(f => f.type.startsWith('image/') || /\.(png|jpe?g|webp|gif|bmp|avif)$/i.test(f.name))); draw(); if (files.length && !manual) go(); else if (files.length) setStatus(st, 'Imagem escolhida. Confira o tipo de imagem em AJUSTES e toque em PROCESSAR.'); } });
   root.append(panel(title, dz, list), options.length ? panel('AJUSTES', row(...options)) : '', panel('RESULTADO', go_, st, prog, results, row(zipBtn)));
   // reprocessa ao mudar ajustes
-  options.forEach(o => o.addEventListener('input', () => { if (files.length) go(); }));
+  if (!manual) options.forEach(o => o.addEventListener('input', () => { if (files.length) go(); }));
   return { prog, st };
 }
 
@@ -177,7 +177,7 @@ export const tools = {
       if (fill !== 'none') { x.globalCompositeOperation = 'destination-over'; x.fillStyle = fill; x.fillRect(0, 0, c.width, c.height); } return c; };
 
     const editor = { files: [], sel: null }; let refresh = () => {};
-    ui = batch(root, {
+    ui = batch(root, { manual: true, // só processa ao apertar PROCESSAR, para dar tempo de escolher o tipo de imagem
       title: 'IMAGENS', hint: 'pessoas, produtos, animais, desenhos… ou arraste aqui', options: [field('Tipo de imagem', modo), field('Fundo', bg), col],
       process: async (img, f) => {
         let per = states.get(f); if (!per) states.set(f, per = {});
