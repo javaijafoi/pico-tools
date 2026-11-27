@@ -40,7 +40,7 @@ export const tools = {
       cls.textContent = c;
     };
     [w, ht].forEach(i => i.addEventListener('input', run));
-    root.append(panel('SEUS DADOS', row(field('Peso (kg)', w), field('Altura (cm)', ht))), panel('RESULTADO', res, cls, h('p', { class: 'note', text: 'Classificação da OMS para adultos. O IMC é só uma referência e não substitui avaliação médica.' })));
+    root.append(panel('SEUS DADOS', row(field('Peso (kg)', w), field('Altura (cm)', ht))), panel('RESULTADO', res, cls, row(copyBtn(() => `IMC ${res.querySelector('b')?.textContent ?? ''} — ${cls.textContent}`, 'COPIAR RESULTADO')), h('p', { class: 'note', text: 'Classificação da OMS para adultos. O IMC é só uma referência e não substitui avaliação médica.' })));
     run();
   },
 
@@ -59,7 +59,7 @@ export const tools = {
       tbl.textContent = lines.join('\n');
     };
     [c0, pm, tx, txU, per, perU].forEach(e => e.addEventListener('input', run));
-    root.append(panel('SIMULAÇÃO', row(field('Valor inicial (R$)', c0), field('Aporte mensal (R$)', pm)), row(field('Taxa de juros', tx), field('Período da taxa', txU)), row(field('Prazo', per), field('Unidade', perU))), panel('RESULTADO', res), panel('MÊS A MÊS', tbl, h('p', { class: 'note', text: 'Simulação simples, sem impostos, inflação ou taxas. Aportes no fim de cada mês.' })));
+    root.append(panel('SIMULAÇÃO', row(field('Valor inicial (R$)', c0), field('Aporte mensal (R$)', pm)), row(field('Taxa de juros', tx), field('Período da taxa', txU)), row(field('Prazo', per), field('Unidade', perU))), panel('RESULTADO', res, row(copyBtn(() => [...res.querySelectorAll('.stat')].map(e => e.dataset.k + ': ' + e.firstChild.textContent).join('\n'), 'COPIAR RESULTADO'))), panel('MÊS A MÊS', tbl, h('p', { class: 'note', text: 'Simulação simples, sem impostos, inflação ou taxas. Aportes no fim de cada mês.' })));
     run();
   },
 
@@ -68,7 +68,7 @@ export const tools = {
       const a = N({ id: id + 'a', value: defA }), b = N({ id: id + 'b', value: defB }), o = h('div', { class: 'out big', id: id + 'o' });
       const run = () => { const x = num(a.value), y = num(b.value); o.textContent = isFinite(x) && isFinite(y) ? calc(x, y) : ''; };
       [a, b].forEach(i => i.addEventListener('input', run)); run();
-      return panel(title, row(field(labelA, a), field(labelB, b)), o);
+      return panel(title, row(field(labelA, a), field(labelB, b)), o, row(copyBtn(() => o.textContent, 'COPIAR RESULTADO')));
     };
     root.append(
       block('QUANTO É X% DE Y?', 'X (%)', 'Y', (x, y) => fmtG(x / 100 * y), '15', '200', 'p1'),
@@ -90,7 +90,7 @@ export const tools = {
       all.textContent = Object.keys(UNITS[cat.value].u).map(k => `${fmtG(conv(v, from.value, k))} ${k}`).join('\n');
     };
     cat.addEventListener('change', fill); [val, from, to].forEach(e => e.addEventListener('input', run));
-    root.append(panel('CONVERTER', field('Grandeza', cat), row(field('Valor', val), field('De', from), field('Para', to)), btn('INVERTER ⇄', () => { [from.value, to.value] = [to.value, from.value]; run(); }, 'w')), panel('RESULTADO', o, all));
+    root.append(panel('CONVERTER', field('Grandeza', cat), row(field('Valor', val), field('De', from), field('Para', to)), btn('INVERTER ⇄', () => { [from.value, to.value] = [to.value, from.value]; run(); }, 'w')), panel('RESULTADO', o, all, row(copyBtn(() => o.textContent, 'COPIAR RESULTADO'), copyBtn(() => all.textContent, 'COPIAR TODAS'))));
     fill();
   },
 
@@ -116,7 +116,7 @@ export const tools = {
       age.textContent = `${y} anos, ${m} meses e ${d} dias\nVividos: ${fmtNum(Math.round((n - b) / 864e5), 0)} dias\nPróximo aniversário: ${left === 0 ? 'é hoje! 🎂' : 'em ' + left + ' dia(s)'}`;
     };
     [d1, d2].forEach(e => e.addEventListener('input', run)); born.addEventListener('input', runAge);
-    root.append(panel('ENTRE DUAS DATAS', row(field('De', d1), field('Até', d2)), res, txt), panel('IDADE EXATA', field('Data de nascimento', born), age));
+    root.append(panel('ENTRE DUAS DATAS', row(field('De', d1), field('Até', d2)), res, txt, row(copyBtn(() => txt.textContent, 'COPIAR RESULTADO'))), panel('IDADE EXATA', field('Data de nascimento', born), age, row(copyBtn(() => age.textContent, 'COPIAR RESULTADO'))));
     run(); runAge();
   },
 

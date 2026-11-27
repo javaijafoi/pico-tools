@@ -1,4 +1,4 @@
-import { h, panel, row, field, btn, select, fmtBytes, baseName, download, dropzone, status, setStatus, progress, loadFFmpeg, parseTime, fmtTime } from '../lib.js';
+import { h, panel, row, field, btn, select, fmtBytes, baseName, download, dlBtn, dropzone, status, setStatus, progress, loadFFmpeg, parseTime, fmtTime } from '../lib.js';
 
 // Estrutura comum: escolher um arquivo de vídeo/áudio, ajustar, rodar o ffmpeg no navegador, baixar.
 function job(root, { kind, title, options = [], run, trim = false, hint }) {
@@ -37,7 +37,7 @@ function job(root, { kind, title, options = [], run, trim = false, hint }) {
       const blob = new Blob([data], { type: mime }); const name = baseName(file.name) + '-' + outName;
       const url = URL.createObjectURL(blob);
       const out = h(kind === 'audio' || /^audio/.test(mime) ? 'audio' : /^image/.test(mime) ? 'img' : 'video', { src: url, controls: true, style: 'width:100%;max-height:260px;margin-top:8px' });
-      result.replaceChildren(out, h('ul', { class: 'files' }, h('li', null, h('span', { class: 'n', text: name }), h('span', { class: 's', text: `${fmtBytes(file.size)} → ${fmtBytes(blob.size)}` }), h('button', { type: 'button', id: 'dl', onclick: () => download(blob, name) }, '⬇'))));
+      result.replaceChildren(out, h('ul', { class: 'files' }, h('li', { class: 'res' }, h('div', { class: 'rh' }, h('span', { class: 'n', text: name }), h('span', { class: 's', text: `${fmtBytes(file.size)} → ${fmtBytes(blob.size)}` })), h('div', { class: 'dl-row' }, dlBtn(blob, name, { id: 'dl' })))));
       prog.hide(); setStatus(st, 'Pronto! Baixe abaixo.', 'ok');
     } catch (e) { prog.hide(); setStatus(st, e.recusa ? e.message : 'Erro: ' + e.message, 'bad'); }
     goBtn.disabled = false;

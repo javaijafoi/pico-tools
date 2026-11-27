@@ -153,3 +153,5 @@ footer a{color:var(--yellow)}
 .modal-b textarea{resize:vertical;min-height:110px;line-height:1.1}
 .panel .lead{color:#444}
 .tool-h .bugbtn{font-size:16px;padding:5px 8px}.tool-h .bugbtn span{font-size:8px}
+.dl-row{width:100%;margin-top:10px}
+.dl-row .btn,.btn.dl-main{display:block;width:100%;padding:16px 12px;font-size:12px}
